@@ -1,0 +1,1430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kleros Analytics Dashboard v2</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { font-family: 'Inter', sans-serif; }
+        body { background: #0a0a12; }
+        .glass { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); }
+        .glass-bright { background: rgba(255,255,255,0.04); }
+        .accent { color: #a78bfa; }
+        .glow { box-shadow: 0 0 60px rgba(139,92,246,0.08); }
+        .active-indicator { animation: glow-pulse 2s ease-in-out infinite; }
+        @keyframes glow-pulse {
+            0%, 100% { box-shadow: 0 0 8px rgba(34,197,94,0.4); }
+            50% { box-shadow: 0 0 16px rgba(34,197,94,0.6); }
+        }
+        .btn-active { background: rgba(139,92,246,0.2); color: #a78bfa; border-color: rgba(139,92,246,0.3); }
+        .btn-inactive { background: transparent; color: #6b7280; border-color: rgba(255,255,255,0.1); }
+        .court-row:hover { background: rgba(255,255,255,0.03); }
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(139,92,246,0.2); border-radius: 2px; }
+        .slide-panel { transform: translateX(100%); transition: transform 0.3s ease; }
+        .slide-panel.open { transform: translateX(0); }
+        .tab-active { border-bottom: 2px solid #a78bfa; color: #a78bfa; }
+        .tab-inactive { border-bottom: 2px solid transparent; color: #6b7280; }
+    </style>
+</head>
+<body class="min-h-screen text-white p-4 md:p-6">
+    <div class="max-w-7xl mx-auto space-y-5">
+
+        <!-- Header -->
+        <header class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-2">
+            <div>
+                <h1 class="text-xl md:text-2xl font-semibold tracking-tight">Kleros <span class="accent">Analytics</span></h1>
+                <p class="text-gray-600 text-xs mt-0.5">Decentralized Arbitration Protocol • V1 + V2 Data</p>
+            </div>
+            <div class="flex items-center gap-3">
+                <div class="flex gap-1 p-1 glass rounded-lg">
+                    <button onclick="setChain('all')" id="btn-all" class="px-3 py-1.5 rounded text-xs font-medium border btn-active">All Chains</button>
+                    <button onclick="setChain('gnosis')" id="btn-gnosis" class="px-3 py-1.5 rounded text-xs font-medium border btn-inactive">Gnosis</button>
+                    <button onclick="setChain('mainnet')" id="btn-mainnet" class="px-3 py-1.5 rounded text-xs font-medium border btn-inactive">Ethereum</button>
+                    <button onclick="setChain('arbitrum')" id="btn-arbitrum" class="px-3 py-1.5 rounded text-xs font-medium border btn-inactive">Arbitrum <span class="text-[9px] text-orange-400">V2</span></button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Key Metrics -->
+        <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
+            <div class="glass rounded-xl p-4 glow">
+                <div class="text-gray-500 text-[10px] uppercase tracking-wider">Total Disputes</div>
+                <div class="text-2xl font-semibold mt-1" id="metric-disputes">2,493</div>
+                <div class="text-xs mt-1"><span class="text-green-400" id="metric-disputes-recent">+13</span> <span class="text-gray-600">last 30d</span></div>
+            </div>
+            <div class="glass rounded-xl p-4">
+                <div class="text-gray-500 text-[10px] uppercase tracking-wider">Active Courts</div>
+                <div class="text-2xl font-semibold mt-1" id="metric-courts">49</div>
+                <div class="text-xs text-gray-600 mt-1" id="metric-courts-sub">19 GNO + 25 ETH + 5 ARB</div>
+            </div>
+            <div class="glass rounded-xl p-4">
+                <div class="text-gray-500 text-[10px] uppercase tracking-wider">Staked Jurors</div>
+                <div class="text-2xl font-semibold mt-1" id="metric-jurors">954</div>
+                <div class="text-xs text-gray-600 mt-1">915 V1 + 39 V2</div>
+            </div>
+            <div class="glass rounded-xl p-4">
+                <div class="text-gray-500 text-[10px] uppercase tracking-wider">Fees Paid</div>
+                <div class="text-2xl font-semibold mt-1" id="metric-fees">410 ETH</div>
+                <div class="text-xs text-gray-600 mt-1">≈ <span id="metric-fees-usd">$1.35M</span></div>
+            </div>
+            <div class="glass rounded-xl p-4">
+                <div class="text-gray-500 text-[10px] uppercase tracking-wider">PNK Redistributed</div>
+                <div class="text-2xl font-semibold mt-1" id="metric-pnk">149M</div>
+                <div class="text-xs text-gray-600 mt-1">≈ <span id="metric-pnk-usd">$2.47M</span></div>
+            </div>
+        </div>
+
+        <!-- Main Timeline Chart -->
+        <div class="glass rounded-xl p-4">
+            <div class="flex items-center justify-between mb-4">
+                <div>
+                    <h2 class="text-sm font-medium" id="timeline-title">Monthly Dispute Activity by Court</h2>
+                    <p class="text-[10px] text-gray-500 mt-0.5">Click on a court in the legend to focus • <span class="text-violet-400">Purple line</span> = total cases</p>
+                </div>
+                <div class="flex items-center gap-3">
+                    <div class="flex gap-1">
+                        <button onclick="setTimelineView('stacked')" id="view-stacked" class="px-2 py-1 rounded text-[10px] font-medium btn-active">Stacked</button>
+                        <button onclick="setTimelineView('grouped')" id="view-grouped" class="px-2 py-1 rounded text-[10px] font-medium btn-inactive">Grouped</button>
+                    </div>
+                    <div class="flex gap-1">
+                        <button onclick="setTimeRange('90d')" id="range-90d" class="px-2 py-1 rounded text-[10px] font-medium btn-inactive">90d</button>
+                        <button onclick="setTimeRange('12m')" id="range-12m" class="px-2 py-1 rounded text-[10px] font-medium btn-active">12m</button>
+                        <button onclick="setTimeRange('2y')" id="range-2y" class="px-2 py-1 rounded text-[10px] font-medium btn-inactive">2y</button>
+                        <button onclick="setTimeRange('all')" id="range-all" class="px-2 py-1 rounded text-[10px] font-medium btn-inactive">All</button>
+                    </div>
+                </div>
+            </div>
+            <div style="height: 280px;"><canvas id="timelineChart"></canvas></div>
+        </div>
+
+        <!-- Two Column Layout -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+
+            <!-- Left: Courts -->
+            <div class="lg:col-span-5 space-y-4">
+
+                <!-- Courts by Activity -->
+                <div class="glass rounded-xl p-4">
+                    <div class="flex items-center justify-between mb-3">
+                        <h2 class="text-sm font-medium">Courts by Activity</h2>
+                        <div class="flex gap-1">
+                            <button onclick="setTimePeriod('30d')" id="period-30d" class="px-2 py-1 rounded text-[10px] font-medium btn-active">30d</button>
+                            <button onclick="setTimePeriod('90d')" id="period-90d" class="px-2 py-1 rounded text-[10px] font-medium btn-inactive">90d</button>
+                            <button onclick="setTimePeriod('1y')" id="period-1y" class="px-2 py-1 rounded text-[10px] font-medium btn-inactive">1y</button>
+                            <button onclick="setTimePeriod('all')" id="period-all" class="px-2 py-1 rounded text-[10px] font-medium btn-inactive">All</button>
+                        </div>
+                    </div>
+
+                    <div id="courts-list" class="space-y-1 max-h-[300px] overflow-y-auto pr-1">
+                        <!-- Populated by JS -->
+                    </div>
+
+                    <button onclick="toggleShowAll()" id="show-more-btn" class="w-full mt-3 py-2 text-xs text-gray-500 hover:text-gray-300 transition">
+                        Show all courts →
+                    </button>
+                </div>
+
+                <!-- Court Distribution Donut -->
+                <div class="glass rounded-xl p-4">
+                    <h2 class="text-sm font-medium mb-3">Dispute Distribution</h2>
+                    <div class="flex items-center gap-4">
+                        <div style="width: 140px; height: 140px;"><canvas id="distributionChart"></canvas></div>
+                        <div id="distribution-legend" class="flex-1 text-xs space-y-1">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: Charts & Apps -->
+            <div class="lg:col-span-7 space-y-4">
+
+                <!-- Applications -->
+                <div class="glass rounded-xl p-4">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="flex items-center gap-3">
+                            <h2 class="text-sm font-medium">Applications Using Kleros</h2>
+                            <div class="flex gap-1">
+                                <button onclick="setAppsPeriod('30d')" id="apps-30d" class="px-2 py-0.5 rounded text-[9px] font-medium btn-inactive">30d</button>
+                                <button onclick="setAppsPeriod('90d')" id="apps-90d" class="px-2 py-0.5 rounded text-[9px] font-medium btn-inactive">90d</button>
+                                <button onclick="setAppsPeriod('1y')" id="apps-1y" class="px-2 py-0.5 rounded text-[9px] font-medium btn-inactive">1y</button>
+                                <button onclick="setAppsPeriod('all')" id="apps-all" class="px-2 py-0.5 rounded text-[9px] font-medium btn-active">All</button>
+                            </div>
+                        </div>
+                        <span class="text-[10px] text-gray-500" id="apps-count">12 apps</span>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2" id="apps-grid">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+
+                <!-- Year over Year + Migration -->
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="glass rounded-xl p-4">
+                        <h2 class="text-sm font-medium mb-2">Yearly Comparison</h2>
+                        <div style="height: 150px;"><canvas id="yearlyChart"></canvas></div>
+                    </div>
+                    <div class="glass rounded-xl p-4">
+                        <h2 class="text-sm font-medium mb-2">Chain Migration</h2>
+                        <div style="height: 150px;"><canvas id="migrationChart"></canvas></div>
+                        <div class="text-center text-[10px] text-gray-500 mt-1">% of disputes on Gnosis</div>
+                    </div>
+                </div>
+
+                <!-- Juror Economics -->
+                <div class="glass rounded-xl p-4">
+                    <h2 class="text-sm font-medium mb-3">Juror Economics</h2>
+                    <div class="grid grid-cols-4 gap-3 text-center">
+                        <div class="glass-bright rounded-lg p-3">
+                            <div class="text-lg font-semibold">0.015</div>
+                            <div class="text-[10px] text-gray-500">ETH/Vote (V1)</div>
+                            <div class="text-[10px] text-green-400">~$49</div>
+                        </div>
+                        <div class="glass-bright rounded-lg p-3">
+                            <div class="text-lg font-semibold">0.0054</div>
+                            <div class="text-[10px] text-gray-500">ETH/Vote (V2)</div>
+                            <div class="text-[10px] text-green-400">~$18</div>
+                        </div>
+                        <div class="glass-bright rounded-lg p-3">
+                            <div class="text-lg font-semibold">$3,291</div>
+                            <div class="text-[10px] text-gray-500">ETH Price</div>
+                        </div>
+                        <div class="glass-bright rounded-lg p-3">
+                            <div class="text-lg font-semibold">$0.017</div>
+                            <div class="text-[10px] text-gray-500">PNK Price</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Kleros V2 Section -->
+        <div class="glass rounded-xl p-4 border border-orange-500/20">
+            <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center gap-2">
+                    <h2 class="text-sm font-medium">Kleros V2 <span class="text-orange-400">(Arbitrum)</span></h2>
+                    <span class="px-2 py-0.5 rounded text-[9px] bg-orange-500/20 text-orange-400">NEW</span>
+                </div>
+                <a href="https://v2.kleros.builders" target="_blank" class="text-[10px] text-gray-500 hover:text-gray-300">View V2 Dashboard →</a>
+            </div>
+
+            <!-- V2 Key Stats -->
+            <div class="grid grid-cols-2 md:grid-cols-6 gap-3 mb-4">
+                <div class="glass-bright rounded-lg p-3 text-center">
+                    <div class="text-xl font-semibold text-orange-400">118</div>
+                    <div class="text-[10px] text-gray-500">Total Cases</div>
+                </div>
+                <div class="glass-bright rounded-lg p-3 text-center">
+                    <div class="text-xl font-semibold">39</div>
+                    <div class="text-[10px] text-gray-500">Active Jurors</div>
+                </div>
+                <div class="glass-bright rounded-lg p-3 text-center">
+                    <div class="text-xl font-semibold">666K</div>
+                    <div class="text-[10px] text-gray-500">PNK Staked</div>
+                </div>
+                <div class="glass-bright rounded-lg p-3 text-center">
+                    <div class="text-xl font-semibold">3.24</div>
+                    <div class="text-[10px] text-gray-500">ETH Paid</div>
+                </div>
+                <div class="glass-bright rounded-lg p-3 text-center">
+                    <div class="text-xl font-semibold">181K</div>
+                    <div class="text-[10px] text-gray-500">PNK Redistributed</div>
+                </div>
+                <div class="glass-bright rounded-lg p-3 text-center">
+                    <div class="text-xl font-semibold">5</div>
+                    <div class="text-[10px] text-gray-500">Active Courts</div>
+                </div>
+            </div>
+
+            <!-- V2 Charts Row -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <!-- V2 Court Distribution -->
+                <div class="glass-bright rounded-lg p-3">
+                    <h3 class="text-xs font-medium mb-2 text-gray-400">V2 Court Distribution</h3>
+                    <div style="height: 140px;"><canvas id="v2CourtChart"></canvas></div>
+                </div>
+
+                <!-- V2 Activity Timeline -->
+                <div class="glass-bright rounded-lg p-3">
+                    <h3 class="text-xs font-medium mb-2 text-gray-400">V2 Monthly Activity</h3>
+                    <div style="height: 140px;"><canvas id="v2TimelineChart"></canvas></div>
+                </div>
+
+                <!-- V2 Growth -->
+                <div class="glass-bright rounded-lg p-3">
+                    <h3 class="text-xs font-medium mb-2 text-gray-400">V2 Cumulative Growth</h3>
+                    <div style="height: 140px;"><canvas id="v2GrowthChart"></canvas></div>
+                </div>
+            </div>
+
+            <!-- V2 Enterprise Consumer Disputes Categories -->
+            <div class="mt-4">
+                <h3 class="text-xs font-medium mb-2 text-gray-400">Enterprise Consumer Disputes Categories <span class="text-orange-400">(74 cases)</span></h3>
+                <p class="text-[9px] text-gray-600 mb-2">Argentine consumer arbitration integrations - Lemon, Metlife, Government entities</p>
+                <div class="grid grid-cols-2 md:grid-cols-5 gap-2" id="v2-consumer-categories">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+
+            <!-- V2 Courts Table -->
+            <div class="mt-4">
+                <h3 class="text-xs font-medium mb-2 text-gray-400">V2 Courts Activity</h3>
+                <div class="space-y-1" id="v2-courts-list">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Cases -->
+        <div class="glass rounded-xl p-4">
+            <div class="flex items-center justify-between mb-3">
+                <h2 class="text-sm font-medium">Recent Disputes</h2>
+                <a href="https://klerosboard.com" target="_blank" class="text-[10px] text-gray-500 hover:text-gray-300">View all on Klerosboard →</a>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2" id="recent-cases">
+                <!-- Populated by JS -->
+            </div>
+        </div>
+
+        <!-- AI Curation Section -->
+        <div class="glass rounded-xl p-4 border border-cyan-500/20">
+            <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center gap-2">
+                    <h2 class="text-sm font-medium">AI-Assisted Curation <span class="text-cyan-400">(V2 Arbitrum)</span></h2>
+                    <span class="px-2 py-0.5 rounded text-[9px] bg-cyan-500/20 text-cyan-400">🤖 AI</span>
+                </div>
+                <a href="https://v2.kleros.builders" target="_blank" class="text-[10px] text-gray-500 hover:text-gray-300">View on V2 Dashboard →</a>
+            </div>
+
+            <p class="text-xs text-gray-500 mb-4">Automated content curation using AI to assist jurors in evaluating submissions for sports calls, image similarity, and fact-checking.</p>
+
+            <!-- AI Curation Stats -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+                <div class="glass-bright rounded-lg p-3 text-center">
+                    <div class="text-xl font-semibold text-cyan-400">21</div>
+                    <div class="text-[10px] text-gray-500">Total Cases</div>
+                </div>
+                <div class="glass-bright rounded-lg p-3 text-center">
+                    <div class="text-xl font-semibold">3</div>
+                    <div class="text-[10px] text-gray-500">Categories</div>
+                </div>
+                <div class="glass-bright rounded-lg p-3 text-center">
+                    <div class="text-xl font-semibold">8</div>
+                    <div class="text-[10px] text-gray-500">Active Jurors</div>
+                </div>
+                <div class="glass-bright rounded-lg p-3 text-center">
+                    <div class="text-xl font-semibold">100%</div>
+                    <div class="text-[10px] text-gray-500">Resolved</div>
+                </div>
+            </div>
+
+            <!-- AI Curation Categories -->
+            <h3 class="text-xs font-medium mb-2 text-gray-400">Curation Categories</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3" id="v2-curation-categories">
+                <!-- Populated by JS -->
+            </div>
+
+            <!-- Category Descriptions -->
+            <div class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-3">
+                <div class="glass-bright rounded-lg p-3">
+                    <div class="flex items-center gap-2 mb-2">
+                        <span class="text-lg">⚽</span>
+                        <span class="text-xs font-medium">Sports Curation</span>
+                    </div>
+                    <p class="text-[10px] text-gray-500">AI assists in evaluating controversial sports calls and referee decisions. Jurors review AI-flagged content for accuracy and fairness.</p>
+                </div>
+                <div class="glass-bright rounded-lg p-3">
+                    <div class="flex items-center gap-2 mb-2">
+                        <span class="text-lg">🖼️</span>
+                        <span class="text-xs font-medium">IP / Image Similarity</span>
+                    </div>
+                    <p class="text-[10px] text-gray-500">AI-powered image comparison for intellectual property disputes. Detects similar or potentially infringing visual content.</p>
+                </div>
+                <div class="glass-bright rounded-lg p-3">
+                    <div class="flex items-center gap-2 mb-2">
+                        <span class="text-lg">📰</span>
+                        <span class="text-xs font-medium">Fake News Detection</span>
+                    </div>
+                    <p class="text-[10px] text-gray-500">Fact-checking curation with AI assistance. Helps jurors evaluate claims and identify misinformation in submitted content.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="text-center text-gray-700 text-[10px] py-2">
+            Data from Kleros V1 & V2 Subgraphs • Updated January 2026 •
+            <a href="https://klerosboard.com" target="_blank" class="hover:text-gray-500">klerosboard.com</a> •
+            <a href="https://v2.kleros.builders" target="_blank" class="hover:text-gray-500">v2.kleros.builders</a>
+        </footer>
+    </div>
+
+    <!-- Court Detail Slide Panel -->
+    <div id="court-panel" class="slide-panel fixed top-0 right-0 h-full w-full md:w-96 glass z-50 overflow-y-auto">
+        <div class="p-4">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-semibold" id="panel-court-name">Court Name</h3>
+                <button onclick="closeCourtPanel()" class="text-gray-500 hover:text-white text-xl">&times;</button>
+            </div>
+            <div id="panel-content">
+                <!-- Populated by JS -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============ PRICE DATA ============
+        const PRICES = { eth: 3291, pnk: 0.0166 };
+
+        // ============ COURT DATA ============
+        const courtsData = {
+            gnosis: [
+                { id: 0, name: "General Court", last30d: 0, last90d: 0, lastYear: 1, allTime: 66, jurors: 97, parent: null },
+                { id: 1, name: "Curation", last30d: 11, last90d: 52, lastYear: 242, allTime: 515, jurors: 47, parent: 0 },
+                { id: 2, name: "English Language", last30d: 0, last90d: 0, lastYear: 0, allTime: 0, jurors: 7, parent: 0 },
+                { id: 3, name: "Spanish-English", last30d: 0, last90d: 0, lastYear: 0, allTime: 8, jurors: 2, parent: 2 },
+                { id: 4, name: "French-English", last30d: 0, last90d: 0, lastYear: 0, allTime: 3, jurors: 2, parent: 2 },
+                { id: 11, name: "Chinese-English", last30d: 0, last90d: 0, lastYear: 0, allTime: 10, jurors: 1, parent: 2 },
+                { id: 12, name: "Development", last30d: 0, last90d: 0, lastYear: 1, allTime: 1, jurors: 11, parent: 0 },
+                { id: 13, name: "Solidity", last30d: 0, last90d: 0, lastYear: 1, allTime: 3, jurors: 2, parent: 12 },
+                { id: 14, name: "JavaScript", last30d: 0, last90d: 0, lastYear: 5, allTime: 13, jurors: 6, parent: 12 },
+                { id: 17, name: "Blockchain (ES)", last30d: 0, last90d: 0, lastYear: 0, allTime: 73, jurors: 22, parent: 15 },
+                { id: 18, name: "Oracle", last30d: 0, last90d: 3, lastYear: 7, allTime: 9, jurors: 2, parent: 0 },
+            ],
+            mainnet: [
+                { id: 0, name: "General Court", last30d: 0, last90d: 0, lastYear: 8, allTime: 56, jurors: 714, parent: null },
+                { id: 2, name: "Non-Technical", last30d: 0, last90d: 0, lastYear: 0, allTime: 363, jurors: 40, parent: 1 },
+                { id: 3, name: "Token Listing", last30d: 0, last90d: 0, lastYear: 0, allTime: 15, jurors: 5, parent: 2 },
+                { id: 4, name: "Technical", last30d: 0, last90d: 0, lastYear: 2, allTime: 30, jurors: 13, parent: 1 },
+                { id: 8, name: "French-English", last30d: 0, last90d: 0, lastYear: 0, allTime: 63, jurors: 231, parent: 0 },
+                { id: 9, name: "Portuguese-English", last30d: 0, last90d: 0, lastYear: 0, allTime: 105, jurors: 31, parent: 0 },
+                { id: 23, name: "Humanity Court", last30d: 1, last90d: 3, lastYear: 8, allTime: 1023, jurors: 114, parent: 0 },
+                { id: 24, name: "Tags Registry", last30d: 0, last90d: 1, lastYear: 4, allTime: 4, jurors: 11, parent: 0 },
+            ],
+            // Kleros V2 on Arbitrum - data from Goldsky subgraph
+            arbitrum: [
+                { id: 29, name: "Consumer Disputes", last30d: 1, last90d: 8, lastYear: 80, allTime: 80, jurors: 15, parent: null },
+                { id: 31, name: "Automated Curation", last30d: 0, last90d: 2, lastYear: 21, allTime: 21, jurors: 8, parent: 1 },
+                { id: 3, name: "Non-Technical", last30d: 0, last90d: 0, lastYear: 8, allTime: 8, jurors: 5, parent: 1 },
+                { id: 1, name: "General Court", last30d: 0, last90d: 0, lastYear: 6, allTime: 6, jurors: 39, parent: null },
+                { id: 24, name: "Humanity", last30d: 0, last90d: 0, lastYear: 3, allTime: 3, jurors: 4, parent: null },
+            ]
+        };
+
+        // V2 Statistics (from Kleros V2 Arbitrum subgraph)
+        const v2Stats = {
+            totalCases: 118,
+            casesRuled: 118,
+            activeJurors: 39,
+            stakedPNK: 666292,  // in thousands
+            paidETH: 3.237,
+            redistributedPNK: 180904  // in thousands
+        };
+
+        // ============ APPLICATIONS DATA (verified from subgraph) ============
+        const applicationsData = [
+            // Mainnet - 0xc5e9ddeb = PoH, 0xebcf3bca = Tokens TCR, 0xbe983409 = PoH v2
+            { name: "Proof of Humanity", allTime: 1012, last30d: 0, last90d: 0, lastYear: 0, chain: "mainnet", icon: "👤", desc: "Sybil-resistant identity", url: "https://proofofhumanity.id", arbId: "0xc5e9ddeb" },
+            { name: "Tokens Registry", allTime: 304, last30d: 0, last90d: 0, lastYear: 0, chain: "mainnet", icon: "🪙", desc: "Curated token listings", url: "https://tokens.kleros.io", arbId: "0xebcf3bca" },
+            { name: "Linguo", allTime: 39, last30d: 0, last90d: 0, lastYear: 0, chain: "mainnet", icon: "🌐", desc: "Translation escrows", url: "https://linguo.kleros.io", arbId: "0x99a0f0e0" },
+            { name: "Escrow", allTime: 21, last30d: 0, last90d: 0, lastYear: 0, chain: "mainnet", icon: "🔒", desc: "Generic escrow service", url: "https://escrow.kleros.io", arbId: "0xe0e1bc8c" },
+            { name: "PoH v2", allTime: 11, last30d: 1, last90d: 3, lastYear: 8, chain: "mainnet", icon: "👤", desc: "PoH second version", url: "https://proofofhumanity.id", arbId: "0xbe983409" },
+            // Gnosis - 0xee1502e2 = Curate, 0x66260c69 = Curate2, 0x5aaf9e23 = Seer
+            { name: "Curate Registry", allTime: 187, last30d: 2, last90d: 5, lastYear: 97, chain: "gnosis", icon: "📋", desc: "Curated lists (Seer, etc)", url: "https://curate.kleros.io", arbId: "0xee1502e2" },
+            { name: "Curate Lists v2", allTime: 135, last30d: 2, last90d: 25, lastYear: 73, chain: "gnosis", icon: "📝", desc: "Generic curated lists", url: "https://curate.kleros.io", arbId: "0x66260c69" },
+            { name: "Omen Markets", allTime: 85, last30d: 0, last90d: 0, lastYear: 5, chain: "gnosis", icon: "🎯", desc: "Prediction market verification", url: "https://omen.eth.link", arbId: "0xc7add3c9" },
+            { name: "Reality.eth", allTime: 83, last30d: 0, last90d: 1, lastYear: 5, chain: "gnosis", icon: "⚡", desc: "Oracle dispute resolution", url: "https://reality.eth.link", arbId: "0x957a53a9" },
+            { name: "Seer Markets", allTime: 67, last30d: 5, last90d: 18, lastYear: 60, chain: "gnosis", icon: "🔮", desc: "Curate list for Seer markets", url: "https://seer.pm", arbId: "0x5aaf9e23" },
+            { name: "Legacy Curate", allTime: 34, last30d: 0, last90d: 0, lastYear: 0, chain: "gnosis", icon: "📜", desc: "Old curate contracts", url: "https://curate.kleros.io", arbId: "0x76944a26" },
+            { name: "Misc Arbitrables", allTime: 11, last30d: 2, last90d: 2, lastYear: 7, chain: "gnosis", icon: "🔗", desc: "Various integrations", url: "https://kleros.io", arbId: "0xae6aaed5" },
+            // Arbitrum V2 - Universal Dispute Template Registry model
+            { name: "Consumer Disputes (V2)", allTime: 80, last30d: 1, last90d: 8, lastYear: 80, chain: "arbitrum", icon: "🛒", desc: "Spanish consumer arbitration", url: "https://v2.kleros.builders", arbId: "0xb5526d02" },
+            { name: "Automated Curation (V2)", allTime: 21, last30d: 0, last90d: 2, lastYear: 21, chain: "arbitrum", icon: "🤖", desc: "Curated lists on V2", url: "https://v2.kleros.builders", arbId: "0xb5526d02" },
+            { name: "Non-Technical (V2)", allTime: 8, last30d: 0, last90d: 0, lastYear: 8, chain: "arbitrum", icon: "📄", desc: "General disputes V2", url: "https://v2.kleros.builders", arbId: "0xb5526d02" },
+            { name: "Humanity (V2)", allTime: 3, last30d: 0, last90d: 0, lastYear: 3, chain: "arbitrum", icon: "👥", desc: "Identity verification V2", url: "https://v2.kleros.builders", arbId: "0xb5526d02" },
+        ];
+
+        // Current apps time period
+        let appsPeriod = 'all';
+
+        // ============ MONTHLY DATA BY COURT ============
+        const monthlyDataByCourt = {
+            gnosis: {"2021-07":{"0":1,"1":3},"2021-12":{"10":1},"2022-01":{"1":1},"2022-02":{"1":10},"2022-04":{"0":3},"2022-05":{"0":11,"1":4},"2022-06":{"0":4},"2022-07":{"0":5,"1":4,"4":1},"2022-08":{"1":1},"2022-09":{"1":2},"2022-10":{"0":2,"1":1},"2022-11":{"1":1,"3":2},"2022-12":{"0":1,"1":2,"11":7},"2023-01":{"0":2,"1":8},"2023-02":{"0":3,"3":1,"11":1},"2023-03":{"0":2,"1":2,"3":2,"11":2},"2023-04":{"0":5,"1":1,"4":1},"2023-05":{"0":1,"1":1,"3":2,"4":1},"2023-06":{"0":2,"1":1,"3":1,"17":3},"2023-07":{"0":1,"1":1,"17":3},"2023-08":{"0":1,"1":5,"17":2},"2023-09":{"1":12,"16":1},"2023-10":{"1":11,"13":2,"17":2},"2023-11":{"0":14,"1":19,"17":3},"2023-12":{"0":5,"1":6,"17":2},"2024-01":{"1":16,"17":5},"2024-02":{"1":13,"17":3},"2024-03":{"1":28,"17":4},"2024-04":{"0":1,"1":56,"14":2,"17":1},"2024-05":{"1":27,"17":2},"2024-06":{"1":5,"14":2,"17":6},"2024-07":{"1":2,"17":15},"2024-08":{"1":3,"14":1,"17":11},"2024-09":{"0":1,"1":1,"14":2,"17":2},"2024-10":{"1":14,"17":6,"18":1},"2024-11":{"1":6,"17":3,"18":1},"2024-12":{"1":5,"12":1,"14":1},"2025-01":{"1":1},"2025-02":{"0":1,"1":2},"2025-03":{"1":2},"2025-04":{"1":4,"13":1},"2025-05":{"1":3,"18":1},"2025-06":{"1":25,"18":1},"2025-07":{"1":55,"18":1},"2025-08":{"1":38,"14":5},"2025-09":{"1":35,"18":1},"2025-10":{"1":46},"2025-11":{"1":3,"18":3},"2025-12":{"1":23},"2026-01":{"1":6}},
+            mainnet: {"2019-03":{"0":3,"1":19,"2":3},"2019-04":{"0":2,"1":20,"2":15},"2019-05":{"0":3,"1":13,"2":10},"2019-06":{"1":2,"2":7},"2019-07":{"0":1,"2":6},"2019-08":{"2":1},"2019-09":{"1":2,"2":6},"2019-10":{"1":1,"2":9},"2019-11":{"2":10},"2019-12":{"1":1,"2":15},"2020-01":{"1":1,"2":8},"2020-02":{"2":7},"2020-03":{"2":7},"2020-04":{"2":19},"2020-05":{"2":11},"2020-06":{"2":34},"2020-07":{"2":85},"2020-08":{"2":51},"2020-09":{"2":38},"2020-10":{"2":29},"2020-11":{"2":47},"2020-12":{"2":49},"2021-01":{"2":26},"2021-02":{"8":14,"9":37},"2021-03":{"8":14,"9":55},"2021-04":{"2":15,"8":13,"9":45},"2021-05":{"2":3,"23":120},"2021-06":{"2":9,"23":65},"2021-07":{"2":6,"9":1,"21":1,"23":26},"2021-08":{"23":9},"2021-09":{"2":5,"9":2,"23":10},"2021-10":{"0":1,"4":2,"23":38},"2021-11":{"2":2,"23":47},"2021-12":{"0":1,"2":1,"23":45},"2022-01":{"2":6,"23":39},"2022-02":{"0":1,"23":28},"2022-03":{"2":2,"23":21},"2022-04":{"1":1,"2":2,"23":23},"2022-05":{"4":13,"23":12},"2022-06":{"4":6,"23":20},"2022-07":{"4":1,"23":13},"2022-08":{"2":1,"23":12},"2022-09":{"23":12},"2022-10":{"23":38},"2022-11":{"0":2,"23":66},"2022-12":{"23":61},"2023-01":{"8":1,"23":61},"2023-02":{"23":29},"2023-03":{"4":1,"23":19},"2023-04":{"23":13},"2023-05":{"23":5},"2023-06":{"23":9},"2023-07":{"0":1,"23":9},"2023-08":{"4":1,"23":12},"2023-09":{"23":6},"2023-10":{"23":2},"2023-11":{"23":5},"2023-12":{"4":1,"23":1},"2024-01":{"23":6},"2024-02":{"23":12},"2024-03":{"23":2},"2024-04":{"23":3},"2024-08":{"23":1},"2024-09":{"23":3},"2024-10":{"0":4},"2024-11":{"0":2,"23":1},"2024-12":{"0":1},"2025-01":{"0":1},"2025-02":{"24":1},"2025-03":{"4":1},"2025-05":{"23":1},"2025-07":{"0":1},"2025-08":{"23":2},"2025-09":{"23":1,"24":1},"2025-10":{"23":2,"24":2},"2025-11":{"23":1},"2025-12":{"23":1}},
+            // Kleros V2 Arbitrum - monthly data from subgraph (verified Jan 2026)
+            // Court IDs: 29=Consumer Disputes, 31=Automated Curation, 3=Non-Technical, 1=General Court, 24=Humanity
+            arbitrum: {"2024-11":{"29":5},"2024-12":{"3":4},"2025-01":{"29":3},"2025-02":{"29":3,"3":4},"2025-03":{"31":7,"1":1},"2025-04":{"31":7,"29":1},"2025-05":{"29":27,"31":1},"2025-06":{"29":9,"31":5},"2025-07":{"29":7},"2025-08":{"29":8,"24":3,"31":1,"1":4},"2025-09":{"29":7,"1":1},"2025-10":{"29":5},"2025-11":{"29":4},"2025-12":{"29":1}}
+        };
+
+        // V2 Monthly data for dedicated charts (verified from Goldsky subgraph Jan 2026)
+        const v2MonthlyData = [
+            { month: "2024-11", disputes: 5, cumulative: 5 },
+            { month: "2024-12", disputes: 4, cumulative: 9 },
+            { month: "2025-01", disputes: 3, cumulative: 12 },
+            { month: "2025-02", disputes: 7, cumulative: 19 },
+            { month: "2025-03", disputes: 8, cumulative: 27 },
+            { month: "2025-04", disputes: 8, cumulative: 35 },
+            { month: "2025-05", disputes: 28, cumulative: 63 },
+            { month: "2025-06", disputes: 14, cumulative: 77 },
+            { month: "2025-07", disputes: 7, cumulative: 84 },
+            { month: "2025-08", disputes: 16, cumulative: 100 },
+            { month: "2025-09", disputes: 8, cumulative: 108 },
+            { month: "2025-10", disputes: 5, cumulative: 113 },
+            { month: "2025-11", disputes: 4, cumulative: 117 },
+            { month: "2025-12", disputes: 1, cumulative: 118 }
+        ];
+
+        // V2 Consumer Disputes Category Breakdown (verified from all 118 cases Jan 2026)
+        // Cases: 1-4, 9-13, 18, 35-48, 50-53, 55-64, 66, 69-72, 75-85, 90, 93, 97-98, 100-101, 103-117
+        const v2ConsumerCategories = [
+            { name: "Lemon", count: 35, icon: "🍋", desc: "Fintech - e-commerce disputes" },
+            { name: "Junín", count: 17, icon: "🏛️", desc: "Municipality (Buenos Aires province)" },
+            { name: "Metlife", count: 14, icon: "🛡️", desc: "Insurance company disputes" },
+            { name: "Mendoza", count: 2, icon: "🍇", desc: "Mendoza province (incl. Lavalle)" },
+            { name: "Gov. Entities", count: 1, icon: "🏢", desc: "Government entity disputes" },
+            { name: "CABA", count: 1, icon: "🏙️", desc: "Buenos Aires City" },
+            { name: "El Dorado", count: 1, icon: "🌴", desc: "El Dorado municipality" },
+            { name: "Maldo", count: 1, icon: "📍", desc: "Maldo consumer office" },
+            { name: "Insurance", count: 1, icon: "📋", desc: "Generic insurance" },
+            { name: "General", count: 1, icon: "📄", desc: "Uncategorized" }
+        ];
+
+        // V2 Automated Curation Category Breakdown (21 cases: 19-33, 49, 65, 67-68, 73-74, 87)
+        const v2CurationCategories = [
+            { name: "Sports", count: 13, icon: "⚽", desc: "Controversial sports calls" },
+            { name: "IP", count: 6, icon: "🖼️", desc: "Image similarity assessment" },
+            { name: "Fake News", count: 2, icon: "📰", desc: "Fact-checking curation" }
+        ];
+
+        // V2 General Court Category Breakdown (6 cases: 26, 94-96, 99, 102)
+        const v2GeneralCategories = [
+            { name: "General", count: 3, icon: "📋", desc: "Refuse to arbitrate" },
+            { name: "GiftCard", count: 2, icon: "🎁", desc: "Gift card validity" },
+            { name: "Residential", count: 1, icon: "🏠", desc: "Lease disputes" }
+        ];
+
+        // V2 Humanity Court (3 cases: 86, 88-89)
+        const v2HumanityCategories = [
+            { name: "Identity", count: 3, icon: "👤", desc: "PoH registration" }
+        ];
+
+        // V2 Non-Technical Court (8 cases: 5-8, 14-17)
+        const v2NonTechCategories = [
+            { name: "Gov. Entities", count: 7, icon: "🏢", desc: "Government entity claims" },
+            { name: "Unknown", count: 1, icon: "❓", desc: "Empty category" }
+        ];
+
+        const recentCases = [
+            { id: 702, court: "Curation", chain: "gnosis", date: "Jan 13", status: "executed", app: "Seer" },
+            { id: 118, court: "Consumer", chain: "arbitrum", date: "Jan 12", status: "executed", app: "V2 Consumer" },
+            { id: 701, court: "Curation", chain: "gnosis", date: "Jan 13", status: "executed", app: "Seer" },
+            { id: 700, court: "Curation", chain: "gnosis", date: "Jan 12", status: "appeal", app: "Curate" },
+            { id: 117, court: "Consumer", chain: "arbitrum", date: "Jan 10", status: "executed", app: "V2 Consumer" },
+            { id: 1672, court: "Humanity", chain: "mainnet", date: "Jan 7", status: "executed", app: "PoH" },
+            { id: 116, court: "Automated", chain: "arbitrum", date: "Jan 5", status: "executed", app: "V2 Curation" },
+            { id: 699, court: "Curation", chain: "gnosis", date: "Jan 11", status: "executed", app: "Seer" },
+        ];
+
+        // ============ STATE ============
+        let currentChain = 'all';
+        let currentPeriod = '30d';
+        let showAllCourts = false;
+        let timelineView = 'stacked';
+        let timeRange = '12m';
+        let timelineChart, distributionChart, yearlyChart, migrationChart;
+
+        // ============ COURT COLORS ============
+        const courtColors = {
+            // Gnosis
+            'Curation': '#60a5fa',
+            'General Court': '#3b82f6',
+            'Oracle': '#06b6d4',
+            'Blockchain (ES)': '#22d3ee',
+            'JavaScript': '#14b8a6',
+            'Solidity': '#10b981',
+            'Spanish-English': '#34d399',
+            'French-English': '#4ade80',
+            'Chinese-English': '#a3e635',
+            'Development': '#84cc16',
+            // Mainnet
+            'Humanity Court': '#a78bfa',
+            'Non-Technical': '#8b5cf6',
+            'Technical': '#7c3aed',
+            'Token Listing': '#6366f1',
+            'Portuguese-English': '#818cf8',
+            'Tags Registry': '#c4b5fd',
+            // Arbitrum V2
+            'Consumer Disputes': '#f97316',
+            'Automated Curation': '#fb923c',
+            'Humanity': '#fdba74',
+        };
+
+        // ============ HELPER FUNCTIONS ============
+        function getActivityValue(court) {
+            const map = { '30d': 'last30d', '90d': 'last90d', '1y': 'lastYear', 'all': 'allTime' };
+            return court[map[currentPeriod]];
+        }
+
+        function formatNumber(num) {
+            if (num >= 1000000) return (num/1000000).toFixed(1) + 'M';
+            if (num >= 1000) return (num/1000).toFixed(1) + 'K';
+            return num.toString();
+        }
+
+        // ============ RENDER FUNCTIONS ============
+        function setChain(chain) {
+            currentChain = chain;
+            ['all', 'gnosis', 'mainnet', 'arbitrum'].forEach(c => {
+                const btn = document.getElementById(`btn-${c}`);
+                if (btn) {
+                    btn.className = `px-3 py-1.5 rounded text-xs font-medium border ${c === chain ? 'btn-active' : 'btn-inactive'}`;
+                }
+            });
+            renderAll();
+        }
+
+        function setTimePeriod(period) {
+            currentPeriod = period;
+            ['30d', '90d', '1y', 'all'].forEach(p => {
+                document.getElementById(`period-${p}`).className = `px-2 py-1 rounded text-[10px] font-medium ${p === period ? 'btn-active' : 'btn-inactive'}`;
+            });
+            renderCourts();
+            updateDistributionChart();
+        }
+
+        function setTimelineView(view) {
+            timelineView = view;
+            ['stacked', 'grouped'].forEach(v => {
+                document.getElementById(`view-${v}`).className = `px-2 py-1 rounded text-[10px] font-medium ${v === view ? 'btn-active' : 'btn-inactive'}`;
+            });
+            updateTimelineChart();
+        }
+
+        function setTimeRange(range) {
+            timeRange = range;
+            ['90d', '12m', '2y', 'all'].forEach(r => {
+                document.getElementById(`range-${r}`).className = `px-2 py-1 rounded text-[10px] font-medium ${r === range ? 'btn-active' : 'btn-inactive'}`;
+            });
+            // Update title based on range
+            const titles = {
+                '90d': 'Weekly Dispute Activity by Court',
+                '12m': 'Monthly Dispute Activity by Court',
+                '2y': 'Monthly Dispute Activity by Court',
+                'all': 'Monthly Dispute Activity by Court'
+            };
+            document.getElementById('timeline-title').textContent = titles[range];
+            updateTimelineChart();
+        }
+
+        function toggleShowAll() {
+            showAllCourts = !showAllCourts;
+            document.getElementById('show-more-btn').textContent = showAllCourts ? 'Show less ↑' : 'Show all courts →';
+            renderCourts();
+        }
+
+        function setAppsPeriod(period) {
+            appsPeriod = period;
+            ['30d', '90d', '1y', 'all'].forEach(p => {
+                document.getElementById(`apps-${p}`).className = `px-2 py-0.5 rounded text-[9px] font-medium ${p === period ? 'btn-active' : 'btn-inactive'}`;
+            });
+            renderApps();
+        }
+
+        function getAppActivity(app) {
+            const map = { '30d': 'last30d', '90d': 'last90d', '1y': 'lastYear', 'all': 'allTime' };
+            return app[map[appsPeriod]];
+        }
+
+        function renderCourts() {
+            const container = document.getElementById('courts-list');
+            let allCourts = [];
+
+            if (currentChain === 'all') {
+                allCourts = [
+                    ...courtsData.gnosis.map(c => ({...c, chain: 'gnosis'})),
+                    ...courtsData.mainnet.map(c => ({...c, chain: 'mainnet'})),
+                    ...courtsData.arbitrum.map(c => ({...c, chain: 'arbitrum'}))
+                ];
+            } else {
+                allCourts = courtsData[currentChain].map(c => ({...c, chain: currentChain}));
+            }
+
+            allCourts.sort((a, b) => getActivityValue(b) - getActivityValue(a));
+            const displayCourts = showAllCourts ? allCourts : allCourts.slice(0, 8);
+            const maxActivity = Math.max(...allCourts.map(c => getActivityValue(c)), 1);
+            const totalActivity = allCourts.reduce((sum, c) => sum + getActivityValue(c), 0);
+
+            container.innerHTML = displayCourts.map(court => {
+                const activity = getActivityValue(court);
+                const pct = (activity / maxActivity) * 100;
+                const pctTotal = totalActivity > 0 ? ((activity / totalActivity) * 100).toFixed(1) : 0;
+                const isActive = court.last30d > 0;
+                const chainColor = court.chain === 'gnosis' ? 'bg-blue-400' : court.chain === 'arbitrum' ? 'bg-orange-400' : 'bg-violet-400';
+                const chainBorder = court.chain === 'gnosis' ? 'border-blue-400/20' : court.chain === 'arbitrum' ? 'border-orange-400/20' : 'border-violet-400/20';
+
+                return `
+                    <div class="court-row flex items-center gap-3 py-2 px-2 rounded cursor-pointer border-l-2 ${chainBorder}" onclick="openCourtPanel('${court.chain}', ${court.id}, '${court.name}')">
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center gap-2">
+                                <span class="text-sm truncate">${court.name}</span>
+                                ${court.chain === 'arbitrum' ? '<span class="text-[8px] text-orange-400">V2</span>' : ''}
+                                ${isActive ? '<span class="w-1.5 h-1.5 rounded-full bg-green-400 active-indicator"></span>' : ''}
+                            </div>
+                            <div class="flex items-center gap-2 mt-1">
+                                <div class="flex-1 h-1 bg-white/5 rounded-full overflow-hidden">
+                                    <div class="h-full ${chainColor} rounded-full transition-all" style="width: ${pct}%"></div>
+                                </div>
+                                <span class="text-[10px] text-gray-500 w-12 text-right">${activity} <span class="text-gray-600">(${pctTotal}%)</span></span>
+                            </div>
+                        </div>
+                        <div class="text-[10px] text-gray-600">${court.jurors}j</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderApps() {
+            const container = document.getElementById('apps-grid');
+            let apps = currentChain === 'all' ? applicationsData : applicationsData.filter(a => a.chain === currentChain);
+
+            // Sort by activity for selected period
+            apps = [...apps].sort((a, b) => getAppActivity(b) - getAppActivity(a));
+
+            const totalDisputes = apps.reduce((sum, a) => sum + getAppActivity(a), 0);
+            const periodLabels = { '30d': 'last 30d', '90d': 'last 90d', '1y': 'last year', 'all': 'all time' };
+            document.getElementById('apps-count').textContent = `${apps.length} apps • ${formatNumber(totalDisputes)} disputes (${periodLabels[appsPeriod]})`;
+
+            // Filter out apps with 0 activity in selected period (unless showing all time)
+            const displayApps = appsPeriod === 'all'
+                ? apps.slice(0, 8)
+                : apps.filter(a => getAppActivity(a) > 0).slice(0, 8);
+
+            container.innerHTML = displayApps.length > 0 ? displayApps.map(app => {
+                const activity = getAppActivity(app);
+                const pct = totalDisputes > 0 ? ((activity / totalDisputes) * 100).toFixed(1) : 0;
+                const chainDot = app.chain === 'gnosis' ? 'bg-blue-400' : app.chain === 'arbitrum' ? 'bg-orange-400' : 'bg-violet-400';
+                const chainName = app.chain === 'gnosis' ? 'Gnosis' : app.chain === 'arbitrum' ? 'Arbitrum' : 'Ethereum';
+                const hasRecent = app.last30d > 0;
+
+                return `
+                    <a href="${app.url}" target="_blank" class="glass-bright rounded-lg p-3 hover:bg-white/5 transition block">
+                        <div class="flex items-center gap-2 mb-1">
+                            <span>${app.icon}</span>
+                            <span class="text-xs font-medium truncate">${app.name}</span>
+                            ${hasRecent ? '<span class="w-1.5 h-1.5 rounded-full bg-green-400"></span>' : ''}
+                        </div>
+                        <div class="text-[10px] text-gray-500 mb-2 truncate">${app.desc}</div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs">${activity} disputes</span>
+                            <span class="text-[10px] text-gray-500">${pct}%</span>
+                        </div>
+                        <div class="flex items-center gap-1 mt-1">
+                            <span class="w-1.5 h-1.5 rounded-full ${chainDot}"></span>
+                            <span class="text-[10px] text-gray-600">${chainName}</span>
+                        </div>
+                    </a>
+                `;
+            }).join('') : '<div class="col-span-2 text-center text-gray-500 text-sm py-4">No activity in this period</div>';
+        }
+
+        function renderRecentCases() {
+            const container = document.getElementById('recent-cases');
+            let cases = currentChain === 'all' ? recentCases : recentCases.filter(c => c.chain === currentChain);
+
+            container.innerHTML = cases.slice(0, 4).map(c => {
+                const chainBg = c.chain === 'gnosis' ? 'bg-blue-500/10 text-blue-400' : c.chain === 'arbitrum' ? 'bg-orange-500/10 text-orange-400' : 'bg-violet-500/10 text-violet-400';
+                const chainLabel = c.chain === 'gnosis' ? 'GNO' : c.chain === 'arbitrum' ? 'ARB' : 'ETH';
+                const statusIcon = c.status === 'appeal' ? '⏳' : '✓';
+                const statusColor = c.status === 'appeal' ? 'text-yellow-400' : 'text-green-400';
+                const chainId = c.chain === 'gnosis' ? '100' : c.chain === 'arbitrum' ? '42161' : '1';
+                const baseUrl = c.chain === 'arbitrum' ? 'https://v2.kleros.builders' : 'https://klerosboard.com';
+                const caseUrl = c.chain === 'arbitrum' ? `${baseUrl}/#/cases/${c.id}` : `${baseUrl}/${chainId}/cases/${c.id}`;
+
+                return `
+                    <a href="${caseUrl}" target="_blank" class="glass-bright rounded-lg p-3 hover:bg-white/5 transition block">
+                        <div class="flex items-center justify-between mb-1">
+                            <span class="text-xs font-mono text-gray-500">#${c.id}</span>
+                            <span class="text-[10px] px-1.5 py-0.5 rounded ${chainBg}">${chainLabel}</span>
+                        </div>
+                        <div class="text-sm">${c.court}</div>
+                        <div class="flex items-center justify-between mt-1">
+                            <span class="text-[10px] text-gray-500">${c.app} • ${c.date}</span>
+                            <span class="${statusColor} text-xs">${statusIcon}</span>
+                        </div>
+                    </a>
+                `;
+            }).join('');
+        }
+
+        function openCourtPanel(chain, courtId, courtName) {
+            const panel = document.getElementById('court-panel');
+            const content = document.getElementById('panel-content');
+            document.getElementById('panel-court-name').textContent = courtName;
+
+            const chainId = chain === 'gnosis' ? '100' : chain === 'arbitrum' ? '42161' : '1';
+            const chainName = chain === 'gnosis' ? 'Gnosis' : chain === 'arbitrum' ? 'Arbitrum (V2)' : 'Ethereum';
+            const court = courtsData[chain].find(c => c.id === courtId);
+            const isV2 = chain === 'arbitrum';
+            const linkUrl = isV2 ? `https://v2.kleros.builders/#/courts/${courtId}` : `https://klerosboard.com/${chainId}/courts/${courtId}`;
+            const linkBg = isV2 ? 'bg-orange-500/20 text-orange-400 hover:bg-orange-500/30' : 'bg-violet-500/20 text-violet-400 hover:bg-violet-500/30';
+            const linkText = isV2 ? 'View on V2 Dashboard →' : 'View on Klerosboard →';
+
+            content.innerHTML = `
+                <div class="space-y-4">
+                    ${isV2 ? '<div class="text-[10px] text-orange-400 bg-orange-500/10 rounded px-2 py-1 text-center">Kleros V2 Court on Arbitrum</div>' : ''}
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="glass-bright rounded-lg p-3 text-center">
+                            <div class="text-xl font-semibold">${court.allTime}</div>
+                            <div class="text-[10px] text-gray-500">Total Disputes</div>
+                        </div>
+                        <div class="glass-bright rounded-lg p-3 text-center">
+                            <div class="text-xl font-semibold">${court.jurors}</div>
+                            <div class="text-[10px] text-gray-500">Active Jurors</div>
+                        </div>
+                        <div class="glass-bright rounded-lg p-3 text-center">
+                            <div class="text-xl font-semibold">${court.last30d}</div>
+                            <div class="text-[10px] text-gray-500">Last 30 Days</div>
+                        </div>
+                        <div class="glass-bright rounded-lg p-3 text-center">
+                            <div class="text-xl font-semibold">${court.lastYear}</div>
+                            <div class="text-[10px] text-gray-500">Last Year</div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h4 class="text-xs font-medium mb-2 text-gray-400">Activity Trend</h4>
+                        <div class="h-24 glass-bright rounded-lg p-2">
+                            <canvas id="court-trend-chart"></canvas>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h4 class="text-xs font-medium mb-2 text-gray-400">Court Info</h4>
+                        <div class="space-y-2 text-xs">
+                            <div class="flex justify-between">
+                                <span class="text-gray-500">Chain</span>
+                                <span>${chainName}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-500">Court ID</span>
+                                <span>${courtId}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-500">Parent Court</span>
+                                <span>${court.parent !== null ? court.parent : 'None (Root)'}</span>
+                            </div>
+                            ${isV2 ? `<div class="flex justify-between">
+                                <span class="text-gray-500">Version</span>
+                                <span class="text-orange-400">Kleros V2</span>
+                            </div>` : ''}
+                        </div>
+                    </div>
+
+                    <a href="${linkUrl}" target="_blank"
+                       class="block w-full py-2 text-center text-xs ${linkBg} rounded-lg transition">
+                        ${linkText}
+                    </a>
+                </div>
+            `;
+
+            panel.classList.add('open');
+
+            // Mini trend chart
+            setTimeout(() => {
+                const ctx = document.getElementById('court-trend-chart');
+                if (ctx) {
+                    const monthlyData = monthlyDataByCourt[chain];
+                    const months = Object.keys(monthlyData).sort().slice(-12);
+                    const values = months.map(m => monthlyData[m][courtId] || 0);
+                    const chartColor = chain === 'gnosis' ? '#60a5fa' : chain === 'arbitrum' ? '#f97316' : '#a78bfa';
+                    const chartBg = chain === 'gnosis' ? 'rgba(96,165,250,0.1)' : chain === 'arbitrum' ? 'rgba(249,115,22,0.1)' : 'rgba(167,139,250,0.1)';
+
+                    new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: months.map(m => m.slice(5)),
+                            datasets: [{
+                                data: values,
+                                borderColor: chartColor,
+                                backgroundColor: chartBg,
+                                fill: true,
+                                tension: 0.4,
+                                pointRadius: 0
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: { legend: { display: false } },
+                            scales: {
+                                x: { display: false },
+                                y: { display: false }
+                            }
+                        }
+                    });
+                }
+            }, 100);
+        }
+
+        function closeCourtPanel() {
+            document.getElementById('court-panel').classList.remove('open');
+        }
+
+        // ============ CHARTS ============
+
+        function initTimelineChart() {
+            const ctx = document.getElementById('timelineChart');
+            timelineChart = new Chart(ctx, {
+                type: 'bar',
+                data: { labels: [], datasets: [] },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: { boxWidth: 8, padding: 8, font: { size: 9 }, color: '#9ca3af' }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                afterTitle: (items) => {
+                                    const total = items.reduce((sum, item) => sum + item.raw, 0);
+                                    return `Total: ${total}`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: { stacked: true, grid: { display: false }, ticks: { color: '#6b7280', font: { size: 9 }, maxRotation: 45 } },
+                        y: { stacked: true, grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: '#6b7280', font: { size: 9 } } }
+                    }
+                }
+            });
+            updateTimelineChart();
+        }
+
+        function updateTimelineChart() {
+            // Merge data from all chains or filter
+            let combinedMonthly = {};
+            const chains = currentChain === 'all' ? ['gnosis', 'mainnet', 'arbitrum'] : [currentChain];
+
+            chains.forEach(chain => {
+                const data = monthlyDataByCourt[chain];
+                Object.entries(data).forEach(([month, courts]) => {
+                    if (!combinedMonthly[month]) combinedMonthly[month] = {};
+                    Object.entries(courts).forEach(([courtId, count]) => {
+                        const courtData = courtsData[chain].find(c => c.id === parseInt(courtId));
+                        const courtName = courtData ? courtData.name : `Court ${courtId}`;
+                        const chainLabel = chain === 'gnosis' ? 'G' : chain === 'arbitrum' ? 'A' : 'E';
+                        const key = `${courtName} (${chainLabel})`;
+                        combinedMonthly[month][key] = (combinedMonthly[month][key] || 0) + count;
+                    });
+                });
+            });
+
+            // Filter by time range
+            let periods = Object.keys(combinedMonthly).sort();
+            const now = new Date();
+
+            if (timeRange === '90d') {
+                // For 90d, we'll group by week
+                const cutoff = new Date();
+                cutoff.setDate(cutoff.getDate() - 90);
+                periods = periods.filter(m => {
+                    const [year, month] = m.split('-').map(Number);
+                    const monthDate = new Date(year, month - 1, 15);
+                    return monthDate >= cutoff;
+                });
+            } else if (timeRange === '12m') {
+                const cutoff = new Date();
+                cutoff.setMonth(cutoff.getMonth() - 12);
+                const cutoffStr = `${cutoff.getFullYear()}-${String(cutoff.getMonth()+1).padStart(2, '0')}`;
+                periods = periods.filter(m => m >= cutoffStr);
+            } else if (timeRange === '2y') {
+                const cutoff = new Date();
+                cutoff.setFullYear(cutoff.getFullYear() - 2);
+                const cutoffStr = `${cutoff.getFullYear()}-${String(cutoff.getMonth()+1).padStart(2, '0')}`;
+                periods = periods.filter(m => m >= cutoffStr);
+            }
+
+            // For 90d view, convert monthly data to approximate weekly data
+            let displayData = {};
+            let labels = [];
+
+            if (timeRange === '90d') {
+                // Generate last 13 weeks
+                const weeks = [];
+                for (let i = 12; i >= 0; i--) {
+                    const weekStart = new Date();
+                    weekStart.setDate(weekStart.getDate() - (i * 7));
+                    const weekLabel = `W${String(weekStart.getMonth()+1).padStart(2,'0')}/${String(weekStart.getDate()).padStart(2,'0')}`;
+                    weeks.push({ label: weekLabel, month: `${weekStart.getFullYear()}-${String(weekStart.getMonth()+1).padStart(2, '0')}` });
+                }
+
+                // Distribute monthly data across weeks (approximate)
+                weeks.forEach(w => {
+                    displayData[w.label] = {};
+                    const monthData = combinedMonthly[w.month] || {};
+                    Object.entries(monthData).forEach(([court, count]) => {
+                        // Approximate weekly = monthly / 4
+                        displayData[w.label][court] = Math.round(count / 4);
+                    });
+                });
+                labels = weeks.map(w => w.label);
+            } else {
+                periods.forEach(m => {
+                    displayData[m] = combinedMonthly[m];
+                });
+                labels = periods;
+            }
+
+            // Get all court names and sort by total
+            const courtTotals = {};
+            Object.values(displayData).forEach(periodData => {
+                Object.entries(periodData).forEach(([court, count]) => {
+                    courtTotals[court] = (courtTotals[court] || 0) + count;
+                });
+            });
+            const topCourts = Object.entries(courtTotals)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 8)
+                .map(([name]) => name);
+
+            // Build bar datasets for courts
+            const datasets = topCourts.map(courtName => {
+                const isGnosis = courtName.includes('(G)');
+                const isArbitrum = courtName.includes('(A)');
+                const baseName = courtName.replace(' (G)', '').replace(' (E)', '').replace(' (A)', '');
+                const defaultColor = isGnosis ? '#60a5fa' : isArbitrum ? '#f97316' : '#a78bfa';
+                return {
+                    type: 'bar',
+                    label: courtName,
+                    data: labels.map(l => displayData[l]?.[courtName] || 0),
+                    backgroundColor: courtColors[baseName] || defaultColor,
+                    borderRadius: 2,
+                    barPercentage: 0.8,
+                    stack: 'courts'
+                };
+            });
+
+            // Calculate totals for the line
+            const totals = labels.map(l => {
+                const periodData = displayData[l] || {};
+                return Object.values(periodData).reduce((sum, v) => sum + v, 0);
+            });
+
+            // Add total line dataset
+            datasets.push({
+                type: 'line',
+                label: 'Total',
+                data: totals,
+                borderColor: '#c4b5fd',
+                backgroundColor: 'transparent',
+                borderWidth: 2,
+                pointRadius: 3,
+                pointBackgroundColor: '#c4b5fd',
+                tension: 0.3,
+                yAxisID: 'y',
+                order: 0 // Draw on top
+            });
+
+            // Format labels
+            const displayLabels = timeRange === '90d'
+                ? labels
+                : labels.map(m => m.slice(2)); // Show yy-mm for monthly
+
+            timelineChart.data.labels = displayLabels;
+            timelineChart.data.datasets = datasets;
+            timelineChart.options.scales.x.stacked = timelineView === 'stacked';
+            timelineChart.options.scales.y.stacked = timelineView === 'stacked';
+            timelineChart.update();
+        }
+
+        function initDistributionChart() {
+            const ctx = document.getElementById('distributionChart');
+            distributionChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: { labels: [], datasets: [{ data: [], backgroundColor: [] }] },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '65%',
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: (context) => {
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const pct = ((context.raw / total) * 100).toFixed(1);
+                                    return `${context.label}: ${context.raw} (${pct}%)`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+            updateDistributionChart();
+        }
+
+        function updateDistributionChart() {
+            let allCourts = [];
+            if (currentChain === 'all') {
+                allCourts = [
+                    ...courtsData.gnosis.map(c => ({...c, chain: 'gnosis'})),
+                    ...courtsData.mainnet.map(c => ({...c, chain: 'mainnet'})),
+                    ...courtsData.arbitrum.map(c => ({...c, chain: 'arbitrum'}))
+                ];
+            } else {
+                allCourts = courtsData[currentChain].map(c => ({...c, chain: currentChain}));
+            }
+
+            const courtsByActivity = allCourts
+                .map(c => ({ name: c.name, value: getActivityValue(c), chain: c.chain }))
+                .filter(c => c.value > 0)
+                .sort((a, b) => b.value - a.value)
+                .slice(0, 6);
+
+            const total = courtsByActivity.reduce((sum, c) => sum + c.value, 0);
+
+            distributionChart.data.labels = courtsByActivity.map(c => c.name);
+            distributionChart.data.datasets[0].data = courtsByActivity.map(c => c.value);
+            distributionChart.data.datasets[0].backgroundColor = courtsByActivity.map(c => {
+                const defaultColor = c.chain === 'gnosis' ? '#60a5fa' : c.chain === 'arbitrum' ? '#f97316' : '#a78bfa';
+                return courtColors[c.name] || defaultColor;
+            });
+            distributionChart.update();
+
+            // Update legend
+            const legendContainer = document.getElementById('distribution-legend');
+            legendContainer.innerHTML = courtsByActivity.map(c => {
+                const pct = ((c.value / total) * 100).toFixed(1);
+                const defaultColor = c.chain === 'gnosis' ? '#60a5fa' : c.chain === 'arbitrum' ? '#f97316' : '#a78bfa';
+                const color = courtColors[c.name] || defaultColor;
+                return `
+                    <div class="flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full" style="background: ${color}"></span>
+                        <span class="truncate">${c.name}</span>
+                        <span class="text-gray-500 ml-auto">${pct}%</span>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function initYearlyChart() {
+            const yearlyData = [
+                { year: '2019', gnosis: 0, mainnet: 149, arbitrum: 0 },
+                { year: '2020', gnosis: 0, mainnet: 386, arbitrum: 0 },
+                { year: '2021', gnosis: 4, mainnet: 531, arbitrum: 0 },
+                { year: '2022', gnosis: 143, mainnet: 380, arbitrum: 0 },
+                { year: '2023', gnosis: 150, mainnet: 176, arbitrum: 0 },
+                { year: '2024', gnosis: 247, mainnet: 35, arbitrum: 9 },
+                { year: '2025', gnosis: 163, mainnet: 15, arbitrum: 109 }
+            ];
+
+            const ctx = document.getElementById('yearlyChart');
+            yearlyChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: yearlyData.map(d => d.year),
+                    datasets: [
+                        { label: 'Gnosis', data: yearlyData.map(d => d.gnosis), backgroundColor: '#60a5fa', borderRadius: 4 },
+                        { label: 'Ethereum', data: yearlyData.map(d => d.mainnet), backgroundColor: '#a78bfa', borderRadius: 4 },
+                        { label: 'Arbitrum', data: yearlyData.map(d => d.arbitrum), backgroundColor: '#f97316', borderRadius: 4 }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                afterBody: (items) => {
+                                    const year = items[0].label;
+                                    const data = yearlyData.find(d => d.year === year);
+                                    const total = data.gnosis + data.mainnet + data.arbitrum;
+                                    const gnosisPct = total > 0 ? ((data.gnosis / total) * 100).toFixed(0) : 0;
+                                    const arbPct = total > 0 ? ((data.arbitrum / total) * 100).toFixed(0) : 0;
+                                    return `Gnosis: ${gnosisPct}% | V2: ${arbPct}%`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: { stacked: true, grid: { display: false }, ticks: { color: '#6b7280', font: { size: 9 } } },
+                        y: { stacked: true, grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: '#6b7280', font: { size: 9 } } }
+                    }
+                }
+            });
+        }
+
+        function initMigrationChart() {
+            const migrationData = [
+                { year: '2019', pct: 0 },
+                { year: '2020', pct: 0 },
+                { year: '2021', pct: 1 },
+                { year: '2022', pct: 27 },
+                { year: '2023', pct: 46 },
+                { year: '2024', pct: 88 },
+                { year: '2025', pct: 92 }
+            ];
+
+            const ctx = document.getElementById('migrationChart');
+            migrationChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: migrationData.map(d => d.year),
+                    datasets: [{
+                        data: migrationData.map(d => d.pct),
+                        borderColor: '#60a5fa',
+                        backgroundColor: 'rgba(96, 165, 250, 0.1)',
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 4,
+                        pointBackgroundColor: '#60a5fa'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: (context) => `${context.raw}% on Gnosis`
+                            }
+                        }
+                    },
+                    scales: {
+                        x: { grid: { display: false }, ticks: { color: '#6b7280', font: { size: 9 } } },
+                        y: {
+                            min: 0,
+                            max: 100,
+                            grid: { color: 'rgba(255,255,255,0.03)' },
+                            ticks: {
+                                color: '#6b7280',
+                                font: { size: 9 },
+                                callback: v => v + '%'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // ============ V2 SPECIFIC CHARTS ============
+
+        function initV2CourtChart() {
+            const ctx = document.getElementById('v2CourtChart');
+            if (!ctx) return;
+
+            const v2Courts = courtsData.arbitrum;
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: v2Courts.map(c => c.name),
+                    datasets: [{
+                        data: v2Courts.map(c => c.allTime),
+                        backgroundColor: ['#f97316', '#fb923c', '#fdba74', '#fed7aa', '#ffedd5'],
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '60%',
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: (context) => {
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const pct = ((context.raw / total) * 100).toFixed(1);
+                                    return `${context.label}: ${context.raw} (${pct}%)`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function initV2TimelineChart() {
+            const ctx = document.getElementById('v2TimelineChart');
+            if (!ctx) return;
+
+            // Format labels as "Mon YY" (e.g., "Nov 24", "May 25")
+            const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const formatMonthLabel = (monthStr) => {
+                const [year, month] = monthStr.split('-');
+                return `${monthNames[parseInt(month) - 1]} ${year.slice(2)}`;
+            };
+
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: v2MonthlyData.map(d => formatMonthLabel(d.month)),
+                    datasets: [{
+                        label: 'Disputes',
+                        data: v2MonthlyData.map(d => d.disputes),
+                        backgroundColor: '#f97316',
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { grid: { display: false }, ticks: { color: '#6b7280', font: { size: 8 }, maxRotation: 45 } },
+                        y: { grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: '#6b7280', font: { size: 8 } } }
+                    }
+                }
+            });
+        }
+
+        function initV2GrowthChart() {
+            const ctx = document.getElementById('v2GrowthChart');
+            if (!ctx) return;
+
+            // Format labels as "Mon YY" (e.g., "Nov 24", "May 25")
+            const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const formatMonthLabel = (monthStr) => {
+                const [year, month] = monthStr.split('-');
+                return `${monthNames[parseInt(month) - 1]} ${year.slice(2)}`;
+            };
+
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: v2MonthlyData.map(d => formatMonthLabel(d.month)),
+                    datasets: [{
+                        label: 'Cumulative',
+                        data: v2MonthlyData.map(d => d.cumulative),
+                        borderColor: '#f97316',
+                        backgroundColor: 'rgba(249, 115, 22, 0.1)',
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 3,
+                        pointBackgroundColor: '#f97316'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { grid: { display: false }, ticks: { color: '#6b7280', font: { size: 8 }, maxRotation: 45 } },
+                        y: { grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: '#6b7280', font: { size: 8 } } }
+                    }
+                }
+            });
+        }
+
+        function renderV2Courts() {
+            const container = document.getElementById('v2-courts-list');
+            if (!container) return;
+
+            const v2Courts = courtsData.arbitrum.sort((a, b) => b.allTime - a.allTime);
+            const maxActivity = Math.max(...v2Courts.map(c => c.allTime), 1);
+            const totalActivity = v2Courts.reduce((sum, c) => sum + c.allTime, 0);
+
+            container.innerHTML = v2Courts.map(court => {
+                const pct = (court.allTime / maxActivity) * 100;
+                const pctTotal = ((court.allTime / totalActivity) * 100).toFixed(1);
+                const isActive = court.last30d > 0;
+
+                return `
+                    <div class="court-row flex items-center gap-3 py-2 px-2 rounded cursor-pointer border-l-2 border-orange-400/20" onclick="openCourtPanel('arbitrum', ${court.id}, '${court.name}')">
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center gap-2">
+                                <span class="text-sm truncate">${court.name}</span>
+                                ${isActive ? '<span class="w-1.5 h-1.5 rounded-full bg-green-400 active-indicator"></span>' : ''}
+                            </div>
+                            <div class="flex items-center gap-2 mt-1">
+                                <div class="flex-1 h-1 bg-white/5 rounded-full overflow-hidden">
+                                    <div class="h-full bg-orange-400 rounded-full transition-all" style="width: ${pct}%"></div>
+                                </div>
+                                <span class="text-[10px] text-gray-500 w-12 text-right">${court.allTime} <span class="text-gray-600">(${pctTotal}%)</span></span>
+                            </div>
+                        </div>
+                        <div class="text-[10px] text-gray-600">${court.jurors}j</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderV2Categories() {
+            // Consumer categories
+            const consumerContainer = document.getElementById('v2-consumer-categories');
+            if (consumerContainer) {
+                const totalConsumer = v2ConsumerCategories.reduce((sum, c) => sum + c.count, 0);
+                consumerContainer.innerHTML = v2ConsumerCategories.map(cat => {
+                    const pct = ((cat.count / totalConsumer) * 100).toFixed(1);
+                    return `
+                        <div class="glass-bright rounded-lg p-2 text-center hover:bg-white/5 transition">
+                            <div class="text-lg">${cat.icon}</div>
+                            <div class="text-xs font-medium mt-1">${cat.name}</div>
+                            <div class="text-lg font-semibold text-orange-400">${cat.count}</div>
+                            <div class="text-[9px] text-gray-500">${pct}%</div>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            // Curation categories
+            const curationContainer = document.getElementById('v2-curation-categories');
+            if (curationContainer) {
+                const totalCuration = v2CurationCategories.reduce((sum, c) => sum + c.count, 0);
+                curationContainer.innerHTML = v2CurationCategories.map(cat => {
+                    const pct = ((cat.count / totalCuration) * 100).toFixed(1);
+                    return `
+                        <div class="glass-bright rounded-lg p-2 text-center hover:bg-white/5 transition">
+                            <div class="text-lg">${cat.icon}</div>
+                            <div class="text-xs font-medium mt-1">${cat.name}</div>
+                            <div class="text-lg font-semibold text-orange-400">${cat.count}</div>
+                            <div class="text-[9px] text-gray-500">${pct}%</div>
+                        </div>
+                    `;
+                }).join('');
+            }
+        }
+
+        function renderAll() {
+            renderCourts();
+            renderApps();
+            renderRecentCases();
+            updateTimelineChart();
+            updateDistributionChart();
+            renderV2Courts();
+            renderV2Categories();
+        }
+
+        // ============ INIT ============
+        document.addEventListener('DOMContentLoaded', () => {
+            initTimelineChart();
+            initDistributionChart();
+            initYearlyChart();
+            initMigrationChart();
+            // V2 specific charts
+            initV2CourtChart();
+            initV2TimelineChart();
+            initV2GrowthChart();
+            renderV2Courts();
+            renderV2Categories();
+            // General renders
+            renderCourts();
+            renderApps();
+            renderRecentCases();
+        });
+
+        // Close panel on escape
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeCourtPanel();
+        });
+    </script>
+</body>
+</html>
