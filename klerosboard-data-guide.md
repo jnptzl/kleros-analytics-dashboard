@@ -749,13 +749,13 @@ const query = `{
 
 ---
 
-## Chain Statistics (as of January 2026)
+## Chain Statistics (as of April 2026)
 
 | Metric | Ethereum Mainnet | Gnosis Chain | Total |
 |--------|------------------|--------------|-------|
-| Total Disputes | 1,672 | 703 | 2,375 |
+| Total Disputes | 1,675 | 792 | 2,467 |
 | Active Courts | 25 | 19 | 44 |
-| Peak Year | 2021 (531 cases) | 2024 (247 cases) | - |
+| Peak Year | 2021 (531 cases) | 2025 (~345 cases) | - |
 
 **Migration Trend:** Activity has significantly shifted from Ethereum to Gnosis over time:
 - 2020: 100% Ethereum
@@ -1359,16 +1359,16 @@ https://api.goldsky.com/api/public/project_cmgx9all3003atlp2bqha1zif/subgraphs/k
 - The Graph Explorer: `https://thegraph.com/explorer/subgraphs/3U95wXKP8fBpkMNn8mbroVkUTuh6KtHGa456pTixx9B2`
 - Requires API key for production use
 
-### V2 Key Statistics (January 2026)
+### V2 Key Statistics (April 2026)
 
 | Metric | Value |
 |--------|-------|
-| Total Cases | 118 |
-| Cases Ruled | 118 |
-| Active Jurors | 39 |
-| Staked PNK | 666,292 PNK (~$11,083) |
-| ETH Paid | 3.24 ETH (~$10,690) |
-| PNK Redistributed | 180,904 PNK (~$3,009) |
+| Total Cases | 133 |
+| Cases Ruled | 131 |
+| Active Jurors | 41 |
+| Staked PNK | 774,964 PNK (~$8,525) |
+| ETH Paid | 3.53 ETH (~$7,244) |
+| PNK Redistributed | 189,304 PNK (~$2,082) |
 | First Dispute | November 14, 2024 |
 | Chain | Arbitrum One |
 
@@ -1664,12 +1664,12 @@ scrapeKlerosV2().then(console.log).catch(console.error);
 
 ## Combined Data: Kleros v1 + v2 Summary
 
-### Total Protocol Statistics (January 2026)
+### Total Protocol Statistics (April 2026)
 
 | Metric | V1 (ETH+Gnosis) | V2 (Arbitrum) | Total |
 |--------|-----------------|---------------|-------|
-| Total Disputes | 2,375 | 118 | **2,493** |
-| Active Disputes | ~5 | 0 | ~5 |
+| Total Disputes | 2,467 | 133 | **2,600** |
+| Active Disputes | ~6 | 2 | ~8 |
 | Chains | 2 | 1 | 3 |
 
 ### All Endpoints Reference
@@ -1903,4 +1903,4 @@ async function getV2DataWithCategories() {
 ---
 
 *Document generated from Klerosboard source code analysis and live API data*
-*Last updated: January 2026*
+*Last updated: April 2026*

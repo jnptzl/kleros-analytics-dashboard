@@ -54,8 +54,8 @@
         <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
             <div class="glass rounded-xl p-4 glow">
                 <div class="text-gray-500 text-[10px] uppercase tracking-wider">Total Disputes</div>
-                <div class="text-2xl font-semibold mt-1" id="metric-disputes">2,550</div>
-                <div class="text-xs mt-1"><span class="text-green-400" id="metric-disputes-recent">+23</span> <span class="text-gray-600">last 30d</span></div>
+                <div class="text-2xl font-semibold mt-1" id="metric-disputes">2,600</div>
+                <div class="text-xs mt-1"><span class="text-green-400" id="metric-disputes-recent">+49</span> <span class="text-gray-600">last 30d</span></div>
             </div>
             <div class="glass rounded-xl p-4">
                 <div class="text-gray-500 text-[10px] uppercase tracking-wider">Active Courts</div>
@@ -64,8 +64,8 @@
             </div>
             <div class="glass rounded-xl p-4">
                 <div class="text-gray-500 text-[10px] uppercase tracking-wider">Staked Jurors</div>
-                <div class="text-2xl font-semibold mt-1" id="metric-jurors">954</div>
-                <div class="text-xs text-gray-600 mt-1">915 V1 + 39 V2</div>
+                <div class="text-2xl font-semibold mt-1" id="metric-jurors">956</div>
+                <div class="text-xs text-gray-600 mt-1">915 V1 + 41 V2</div>
             </div>
             <div class="glass rounded-xl p-4">
                 <div class="text-gray-500 text-[10px] uppercase tracking-wider">Fees Paid</div>
@@ -216,23 +216,23 @@
             <!-- V2 Key Stats -->
             <div class="grid grid-cols-2 md:grid-cols-6 gap-3 mb-4">
                 <div class="glass-bright rounded-lg p-3 text-center">
-                    <div class="text-xl font-semibold text-orange-400">122</div>
+                    <div class="text-xl font-semibold text-orange-400">133</div>
                     <div class="text-[10px] text-gray-500">Total Cases</div>
                 </div>
                 <div class="glass-bright rounded-lg p-3 text-center">
-                    <div class="text-xl font-semibold">39</div>
+                    <div class="text-xl font-semibold">41</div>
                     <div class="text-[10px] text-gray-500">Active Jurors</div>
                 </div>
                 <div class="glass-bright rounded-lg p-3 text-center">
-                    <div class="text-xl font-semibold">666K</div>
+                    <div class="text-xl font-semibold">775K</div>
                     <div class="text-[10px] text-gray-500">PNK Staked</div>
                 </div>
                 <div class="glass-bright rounded-lg p-3 text-center">
-                    <div class="text-xl font-semibold">3.24</div>
+                    <div class="text-xl font-semibold">3.53</div>
                     <div class="text-[10px] text-gray-500">ETH Paid</div>
                 </div>
                 <div class="glass-bright rounded-lg p-3 text-center">
-                    <div class="text-xl font-semibold">181K</div>
+                    <div class="text-xl font-semibold">189K</div>
                     <div class="text-[10px] text-gray-500">PNK Redistributed</div>
                 </div>
                 <div class="glass-bright rounded-lg p-3 text-center">
@@ -264,7 +264,7 @@
 
             <!-- V2 Enterprise Consumer Disputes Categories -->
             <div class="mt-4">
-                <h3 class="text-xs font-medium mb-2 text-gray-400">Enterprise Consumer Disputes Categories <span class="text-orange-400">(84 cases)</span></h3>
+                <h3 class="text-xs font-medium mb-2 text-gray-400">Enterprise Consumer Disputes Categories <span class="text-orange-400">(95 cases)</span></h3>
                 <p class="text-[9px] text-gray-600 mb-2">Argentine consumer arbitration integrations - Lemon, Metlife, Government entities</p>
                 <div class="grid grid-cols-2 md:grid-cols-5 gap-2" id="v2-consumer-categories">
                     <!-- Populated by JS -->
@@ -357,7 +357,7 @@
 
         <!-- Footer -->
         <footer class="text-center text-gray-700 text-[10px] py-2">
-            Data from Kleros V1 & V2 Subgraphs • Updated March 2026 •
+            Data from Kleros V1 & V2 Subgraphs • Updated April 2026 •
             <a href="https://klerosboard.com" target="_blank" class="hover:text-gray-500">klerosboard.com</a> •
             <a href="https://v2.kleros.builders" target="_blank" class="hover:text-gray-500">v2.kleros.builders</a>
         </footer>
@@ -384,7 +384,7 @@
         const courtsData = {
             gnosis: [
                 { id: 0, name: "General Court", last30d: 0, last90d: 1, lastYear: 1, allTime: 67, jurors: 122, parent: null },
-                { id: 1, name: "Curation", last30d: 18, last90d: 55, lastYear: 287, allTime: 563, jurors: 46, parent: 0 },
+                { id: 1, name: "Curation", last30d: 36, last90d: 83, lastYear: 292, allTime: 613, jurors: 46, parent: 0 },
                 { id: 2, name: "English Language", last30d: 0, last90d: 0, lastYear: 0, allTime: 0, jurors: 6, parent: 0 },
                 { id: 3, name: "Spanish-English", last30d: 0, last90d: 0, lastYear: 0, allTime: 8, jurors: 2, parent: 2 },
                 { id: 4, name: "French-English", last30d: 0, last90d: 0, lastYear: 0, allTime: 3, jurors: 1, parent: 2 },
@@ -393,7 +393,7 @@
                 { id: 13, name: "Solidity", last30d: 0, last90d: 0, lastYear: 1, allTime: 3, jurors: 2, parent: 12 },
                 { id: 14, name: "JavaScript", last30d: 0, last90d: 0, lastYear: 5, allTime: 13, jurors: 5, parent: 12 },
                 { id: 17, name: "Blockchain (ES)", last30d: 0, last90d: 0, lastYear: 0, allTime: 73, jurors: 17, parent: 15 },
-                { id: 18, name: "Oracle", last30d: 0, last90d: 2, lastYear: 9, allTime: 11, jurors: 31, parent: 0 },
+                { id: 18, name: "Oracle", last30d: 2, last90d: 4, lastYear: 11, allTime: 13, jurors: 31, parent: 0 },
             ],
             mainnet: [
                 { id: 0, name: "General Court", last30d: 0, last90d: 0, lastYear: 1, allTime: 55, jurors: 714, parent: null },
@@ -408,7 +408,7 @@
             // Kleros V2 on Arbitrum - data from KlerosCoreNeo contract reads
             arbitrum: [
                 { id: 29, name: "Consumer Disputes", last30d: 0, last90d: 0, lastYear: 80, allTime: 80, jurors: 15, parent: null },
-                { id: 32, name: "Defensores del Cliente", last30d: 3, last90d: 4, lastYear: 4, allTime: 4, jurors: 5, parent: 29 },
+                { id: 32, name: "Defensores del Cliente", last30d: 11, last90d: 14, lastYear: 15, allTime: 15, jurors: 5, parent: 29 },
                 { id: 31, name: "Automated Curation", last30d: 0, last90d: 0, lastYear: 21, allTime: 21, jurors: 8, parent: 1 },
                 { id: 3, name: "Non-Technical", last30d: 0, last90d: 0, lastYear: 8, allTime: 8, jurors: 5, parent: 1 },
                 { id: 1, name: "General Court", last30d: 0, last90d: 0, lastYear: 6, allTime: 6, jurors: 39, parent: null },
@@ -418,12 +418,12 @@
 
         // V2 Statistics (from KlerosCoreNeo contract on Arbitrum)
         const v2Stats = {
-            totalCases: 122,
-            casesRuled: 122,
-            activeJurors: 39,
-            stakedPNK: 666292,  // in thousands
-            paidETH: 3.237,
-            redistributedPNK: 180904  // in thousands
+            totalCases: 133,
+            casesRuled: 131,
+            activeJurors: 41,
+            stakedPNK: 774964,
+            paidETH: 3.534,
+            redistributedPNK: 189304
         };
 
         // ============ APPLICATIONS DATA (verified from subgraph) ============
@@ -444,7 +444,7 @@
             { name: "Misc Arbitrables", allTime: 11, last30d: 0, last90d: 1, lastYear: 7, chain: "gnosis", icon: "🔗", desc: "Various integrations", url: "https://kleros.io", arbId: "0xae6aaed5" },
             // Arbitrum V2 - Universal Dispute Template Registry model
             { name: "Consumer Disputes (V2)", allTime: 80, last30d: 0, last90d: 0, lastYear: 80, chain: "arbitrum", icon: "🛒", desc: "Spanish consumer arbitration", url: "https://v2.kleros.builders", arbId: "0xb5526d02" },
-            { name: "Defensores del Cliente (V2)", allTime: 4, last30d: 3, last90d: 4, lastYear: 4, chain: "arbitrum", icon: "🏛️", desc: "Argentine consumer ombudsman disputes", url: "https://v2.kleros.builders", arbId: "0xb5526d02" },
+            { name: "Defensores del Cliente (V2)", allTime: 15, last30d: 11, last90d: 14, lastYear: 15, chain: "arbitrum", icon: "🏛️", desc: "Argentine consumer ombudsman disputes", url: "https://v2.kleros.builders", arbId: "0xb5526d02" },
             { name: "Automated Curation (V2)", allTime: 21, last30d: 0, last90d: 0, lastYear: 21, chain: "arbitrum", icon: "🤖", desc: "Curated lists on V2", url: "https://v2.kleros.builders", arbId: "0xb5526d02" },
             { name: "Non-Technical (V2)", allTime: 8, last30d: 0, last90d: 0, lastYear: 8, chain: "arbitrum", icon: "📄", desc: "General disputes V2", url: "https://v2.kleros.builders", arbId: "0xb5526d02" },
             { name: "Humanity (V2)", allTime: 3, last30d: 0, last90d: 0, lastYear: 3, chain: "arbitrum", icon: "👥", desc: "Identity verification V2", url: "https://v2.kleros.builders", arbId: "0xb5526d02" },
@@ -455,11 +455,11 @@
 
         // ============ MONTHLY DATA BY COURT ============
         const monthlyDataByCourt = {
-            gnosis: {"2021-07":{"0":1,"1":3},"2021-12":{"10":1},"2022-01":{"1":1},"2022-02":{"1":10},"2022-04":{"0":3},"2022-05":{"0":11,"1":4},"2022-06":{"0":4},"2022-07":{"0":5,"1":4,"4":1},"2022-08":{"1":1},"2022-09":{"1":2},"2022-10":{"0":2,"1":1},"2022-11":{"1":1,"3":2},"2022-12":{"0":1,"1":2,"11":7},"2023-01":{"0":2,"1":8},"2023-02":{"0":3,"3":1,"11":1},"2023-03":{"0":2,"1":2,"3":2,"11":2},"2023-04":{"0":5,"1":1,"4":1},"2023-05":{"0":1,"1":1,"3":2,"4":1},"2023-06":{"0":2,"1":1,"3":1,"17":3},"2023-07":{"0":1,"1":1,"17":3},"2023-08":{"0":1,"1":5,"17":2},"2023-09":{"1":12,"16":1},"2023-10":{"1":11,"13":2,"17":2},"2023-11":{"0":14,"1":19,"17":3},"2023-12":{"0":5,"1":6,"17":2},"2024-01":{"1":16,"17":5},"2024-02":{"1":13,"17":3},"2024-03":{"1":28,"17":4},"2024-04":{"0":1,"1":56,"14":2,"17":1},"2024-05":{"1":27,"17":2},"2024-06":{"1":5,"14":2,"17":6},"2024-07":{"1":2,"17":15},"2024-08":{"1":3,"14":1,"17":11},"2024-09":{"0":1,"1":1,"14":2,"17":2},"2024-10":{"1":14,"17":6,"18":1},"2024-11":{"1":6,"17":3,"18":1},"2024-12":{"1":5,"12":1,"14":1},"2025-01":{"1":1},"2025-02":{"0":1,"1":2},"2025-03":{"1":2},"2025-04":{"1":4,"13":1},"2025-05":{"1":3,"18":1},"2025-06":{"1":25,"18":1},"2025-07":{"1":55,"18":1},"2025-08":{"1":38,"14":5},"2025-09":{"1":35,"18":1},"2025-10":{"1":46},"2025-11":{"1":3,"18":3},"2025-12":{"1":23},"2026-01":{"1":13},"2026-02":{"0":1,"1":26,"18":2},"2026-03":{"1":15}},
+            gnosis: {"2021-07":{"0":1,"1":3},"2021-12":{"10":1},"2022-01":{"1":1},"2022-02":{"1":10},"2022-04":{"0":3},"2022-05":{"0":11,"1":4},"2022-06":{"0":4},"2022-07":{"0":5,"1":4,"4":1},"2022-08":{"1":1},"2022-09":{"1":2},"2022-10":{"0":2,"1":1},"2022-11":{"1":1,"3":2},"2022-12":{"0":1,"1":2,"11":7},"2023-01":{"0":2,"1":8},"2023-02":{"0":3,"3":1,"11":1},"2023-03":{"0":2,"1":2,"3":2,"11":2},"2023-04":{"0":5,"1":1,"4":1},"2023-05":{"0":1,"1":1,"3":2,"4":1},"2023-06":{"0":2,"1":1,"3":1,"17":3},"2023-07":{"0":1,"1":1,"17":3},"2023-08":{"0":1,"1":5,"17":2},"2023-09":{"1":12,"16":1},"2023-10":{"1":11,"13":2,"17":2},"2023-11":{"0":14,"1":19,"17":3},"2023-12":{"0":5,"1":6,"17":2},"2024-01":{"1":16,"17":5},"2024-02":{"1":13,"17":3},"2024-03":{"1":28,"17":4},"2024-04":{"0":1,"1":56,"14":2,"17":1},"2024-05":{"1":27,"17":2},"2024-06":{"1":5,"14":2,"17":6},"2024-07":{"1":2,"17":15},"2024-08":{"1":3,"14":1,"17":11},"2024-09":{"0":1,"1":1,"14":2,"17":2},"2024-10":{"1":14,"17":6,"18":1},"2024-11":{"1":6,"17":3,"18":1},"2024-12":{"1":5,"12":1,"14":1},"2025-01":{"1":1},"2025-02":{"0":1,"1":2},"2025-03":{"1":2},"2025-04":{"1":4,"13":1},"2025-05":{"1":3,"18":1},"2025-06":{"1":25,"18":1},"2025-07":{"1":55,"18":1},"2025-08":{"1":38,"14":5},"2025-09":{"1":35,"18":1},"2025-10":{"1":46},"2025-11":{"1":3,"18":3},"2025-12":{"1":23},"2026-01":{"1":13},"2026-02":{"0":1,"1":26,"18":2},"2026-03":{"0":1,"1":29},"2026-04":{"1":21,"18":2}},
             mainnet: {"2019-03":{"2":14},"2019-04":{"2":33,"3":4},"2019-05":{"2":27,"3":3},"2019-06":{"0":1,"2":9,"3":3,"4":1},"2019-07":{"2":6,"3":2},"2019-08":{"3":1},"2019-09":{"0":1,"3":1,"4":1},"2019-10":{"0":4,"2":7,"3":1},"2019-11":{"0":3,"2":8,"6":1},"2019-12":{"0":9,"2":9},"2020-01":{"0":3,"2":3,"8":2},"2020-02":{"0":1,"2":1,"8":4},"2020-03":{"0":3},"2020-04":{"0":2,"2":2,"5":1,"8":11},"2020-05":{"2":4,"8":12},"2020-06":{"2":3,"6":1,"8":12,"9":2},"2020-07":{"0":1,"2":18,"8":14,"9":47},"2020-08":{"0":1,"2":35,"9":29},"2020-09":{"2":21,"5":1,"9":6},"2020-10":{"2":35,"4":1,"8":3,"9":10},"2020-11":{"2":46,"9":3,"13":1},"2020-12":{"2":34,"8":4,"9":3,"13":2,"20":1},"2021-01":{"0":1,"2":6,"4":1,"9":1,"20":1},"2021-02":{"0":2,"2":2,"9":1,"20":1,"21":1},"2021-03":{"0":2,"2":3,"23":3},"2021-04":{"0":4,"23":36},"2021-05":{"0":2,"2":2,"20":1,"23":154},"2021-06":{"2":8,"23":82},"2021-07":{"2":5,"9":1,"21":1,"23":34},"2021-08":{"2":3,"23":20},"2021-09":{"2":5,"9":2,"23":9},"2021-10":{"0":1,"4":1,"23":8},"2021-11":{"2":1,"4":1,"23":57},"2021-12":{"0":1,"2":1,"23":46},"2022-01":{"2":3,"23":45},"2022-02":{"2":4,"23":28},"2022-03":{"0":1,"2":1,"23":30},"2022-04":{"2":1,"23":14},"2022-05":{"2":2,"4":2,"23":21},"2022-06":{"4":15,"23":16},"2022-07":{"4":4,"23":20},"2022-08":{"2":1,"23":9},"2022-09":{"23":13},"2022-10":{"23":9},"2022-11":{"0":1,"23":63},"2022-12":{"0":1,"23":90},"2023-01":{"8":1,"23":33},"2023-02":{"23":56},"2023-03":{"4":1,"23":23},"2023-04":{"23":11},"2023-05":{"23":11},"2023-06":{"23":9},"2023-07":{"0":1,"23":5},"2023-08":{"4":1,"23":14},"2023-09":{"23":7},"2023-10":{"23":3},"2023-11":{"23":4},"2023-12":{"4":1,"23":3},"2024-01":{"23":4},"2024-02":{"23":10},"2024-03":{"23":5},"2024-04":{"23":3},"2024-05":{"23":1},"2024-09":{"23":3},"2024-10":{"0":4,"23":1},"2024-11":{"0":1,"23":1},"2024-12":{"0":2},"2025-01":{"0":1},"2025-03":{"4":1,"24":1},"2025-05":{"23":1},"2025-07":{"0":1},"2025-08":{"23":1},"2025-09":{"23":2},"2025-10":{"23":1,"24":2},"2025-11":{"23":2,"24":1},"2026-01":{"4":1,"23":1},"2026-02":{"4":1,"23":1}},
-            // Kleros V2 Arbitrum - monthly data from contract reads (verified Mar 2026)
+            // Kleros V2 Arbitrum - monthly data from contract reads (verified Apr 2026)
             // Court IDs: 29=Consumer Disputes, 31=Automated Curation, 3=Non-Technical, 1=General Court, 24=Humanity, 32=Defensores del Cliente
-            arbitrum: {"2024-11":{"29":5},"2024-12":{"3":4},"2025-01":{"29":3},"2025-02":{"29":3,"3":4},"2025-03":{"31":7,"1":1},"2025-04":{"31":7,"29":1},"2025-05":{"29":27,"31":1},"2025-06":{"29":9,"31":5},"2025-07":{"29":7},"2025-08":{"29":8,"24":3,"31":1,"1":4},"2025-09":{"29":7,"1":1},"2025-10":{"29":5},"2025-11":{"29":4},"2025-12":{"29":1},"2026-02":{"32":1},"2026-03":{"32":3}}
+            arbitrum: {"2024-11":{"29":5},"2024-12":{"3":4},"2025-01":{"29":3},"2025-02":{"29":3,"3":4},"2025-03":{"31":7,"1":1},"2025-04":{"31":7,"29":1},"2025-05":{"29":27,"31":1},"2025-06":{"29":9,"31":5},"2025-07":{"29":7},"2025-08":{"29":8,"24":3,"31":1,"1":4},"2025-09":{"29":7,"1":1},"2025-10":{"29":5},"2025-11":{"29":4},"2025-12":{"29":1},"2026-02":{"32":1},"2026-03":{"32":3},"2026-04":{"32":11}}
         };
 
         // V2 Monthly data for dedicated charts (verified from contract reads Mar 2026)
@@ -479,16 +479,17 @@
             { month: "2025-11", disputes: 4, cumulative: 117 },
             { month: "2025-12", disputes: 1, cumulative: 118 },
             { month: "2026-02", disputes: 1, cumulative: 119 },
-            { month: "2026-03", disputes: 3, cumulative: 122 }
+            { month: "2026-03", disputes: 3, cumulative: 122 },
+            { month: "2026-04", disputes: 11, cumulative: 133 }
         ];
 
         // V2 Consumer Disputes Category Breakdown (verified from contract reads Mar 2026)
-        // Courts 29 (Consumer) + 32 (Defensores del Cliente) = 84 total consumer cases
+        // Courts 29 (Consumer) + 32 (Defensores del Cliente) = 95 total consumer cases
         const v2ConsumerCategories = [
             { name: "Lemon", count: 35, icon: "🍋", desc: "Fintech - e-commerce disputes" },
             { name: "Junín", count: 17, icon: "🏛️", desc: "Municipality (Buenos Aires province)" },
             { name: "Metlife", count: 14, icon: "🛡️", desc: "Insurance company disputes" },
-            { name: "Defensor del Cliente", count: 4, icon: "🏛️", desc: "Consumer ombudsman court (Court 32)" },
+            { name: "Defensor del Cliente", count: 15, icon: "🏛️", desc: "Consumer ombudsman court (Court 32)" },
             { name: "Mendoza", count: 2, icon: "🍇", desc: "Mendoza province (incl. Lavalle)" },
             { name: "Gov. Entities", count: 1, icon: "🏢", desc: "Government entity disputes" },
             { name: "CABA", count: 1, icon: "🏙️", desc: "Buenos Aires City" },
@@ -524,14 +525,14 @@
         ];
 
         const recentCases = [
-            { id: 753, court: "Curation", chain: "gnosis", date: "Mar 22", status: "voting", app: "Curate" },
-            { id: 752, court: "Curation", chain: "gnosis", date: "Mar 21", status: "voting", app: "Curate" },
-            { id: 751, court: "Curation", chain: "gnosis", date: "Mar 20", status: "voting", app: "Curate" },
-            { id: 750, court: "Curation", chain: "gnosis", date: "Mar 20", status: "voting", app: "Curate" },
-            { id: 121, court: "Defensores del Cliente", chain: "arbitrum", date: "Mar 14", status: "executed", app: "V2 Defensor" },
-            { id: 749, court: "Curation", chain: "gnosis", date: "Mar 18", status: "executed", app: "Curate" },
-            { id: 120, court: "Defensores del Cliente", chain: "arbitrum", date: "Mar 13", status: "executed", app: "V2 Defensor" },
-            { id: 119, court: "Defensores del Cliente", chain: "arbitrum", date: "Mar 12", status: "executed", app: "V2 Defensor" },
+            { id: 791, court: "Curation", chain: "gnosis", date: "Apr 22", status: "voting", app: "Curate" },
+            { id: 790, court: "Curation", chain: "gnosis", date: "Apr 21", status: "voting", app: "Curate" },
+            { id: 132, court: "Defensores del Cliente", chain: "arbitrum", date: "Apr 22", status: "voting", app: "V2 Defensor" },
+            { id: 131, court: "Defensores del Cliente", chain: "arbitrum", date: "Apr 20", status: "voting", app: "V2 Defensor" },
+            { id: 789, court: "Oracle", chain: "gnosis", date: "Apr 18", status: "executed", app: "Reality.eth" },
+            { id: 130, court: "Defensores del Cliente", chain: "arbitrum", date: "Apr 18", status: "executed", app: "V2 Defensor" },
+            { id: 788, court: "Curation", chain: "gnosis", date: "Apr 15", status: "executed", app: "Curate" },
+            { id: 129, court: "Defensores del Cliente", chain: "arbitrum", date: "Apr 14", status: "executed", app: "V2 Defensor" },
         ];
 
         // ============ STATE ============
