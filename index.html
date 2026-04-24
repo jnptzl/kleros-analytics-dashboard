@@ -171,9 +171,9 @@
                         <div style="height: 150px;"><canvas id="yearlyChart"></canvas></div>
                     </div>
                     <div class="glass rounded-xl p-4">
-                        <h2 class="text-sm font-medium mb-2">Chain Migration</h2>
-                        <div style="height: 150px;"><canvas id="migrationChart"></canvas></div>
-                        <div class="text-center text-[10px] text-gray-500 mt-1">% of disputes on Gnosis</div>
+                        <h2 class="text-sm font-medium mb-2">Disputes by Use Case</h2>
+                        <div style="height: 150px;"><canvas id="useCaseChart"></canvas></div>
+                        <div class="text-center text-[10px] text-gray-500 mt-1">all-time, across V1 + V2</div>
                     </div>
                 </div>
 
@@ -542,7 +542,7 @@
         let showAllCourts = false;
         let timelineView = 'stacked';
         let timeRange = '12m';
-        let timelineChart, distributionChart, yearlyChart, migrationChart;
+        let timelineChart, distributionChart, yearlyChart, useCaseChart;
 
         // ============ COURT COLORS ============
         const courtColors = {
@@ -1170,55 +1170,50 @@
             });
         }
 
-        function initMigrationChart() {
-            const migrationData = [
-                { year: '2019', pct: 0 },
-                { year: '2020', pct: 0 },
-                { year: '2021', pct: 1 },
-                { year: '2022', pct: 27 },
-                { year: '2023', pct: 46 },
-                { year: '2024', pct: 88 },
-                { year: '2025', pct: 92 }
+        function initUseCaseChart() {
+            // Derived from courtsData + V2 applications:
+            //   Identity: Mainnet court 23 Humanity (1023) + Arbitrum 24 (3) + Mainnet PoH v2 arbitrable (11) = 1037
+            //   Curation: Gnosis court 1 (598) + Gnosis 17 Blockchain ES (73) + Mainnet 2/3 Token (378) + Arbitrum 31 (21) = 1070
+            //   Translation: Mainnet 8 French-English (63) + 9 Portuguese-English (105) + Gnosis 3/4/11 (21) + Linguo arbitrable (39) = 228
+            //   Consumer: Arbitrum 29 Consumer (80) + 32 Defensores (15) = 95
+            //   Oracle: Gnosis 18 (13) + Reality.eth arbitrable (93) = 106
+            //   Other: General courts + escrow + misc = ~64
+            const useCaseData = [
+                { label: 'List Curation', value: 1070, color: '#60a5fa' },
+                { label: 'Identity (PoH)', value: 1037, color: '#a78bfa' },
+                { label: 'Translation', value: 228, color: '#34d399' },
+                { label: 'Oracle / Prediction', value: 106, color: '#06b6d4' },
+                { label: 'Consumer Arbitration', value: 95, color: '#f97316' },
+                { label: 'Other', value: 64, color: '#6b7280' }
             ];
 
-            const ctx = document.getElementById('migrationChart');
-            migrationChart = new Chart(ctx, {
-                type: 'line',
+            const ctx = document.getElementById('useCaseChart');
+            useCaseChart = new Chart(ctx, {
+                type: 'bar',
                 data: {
-                    labels: migrationData.map(d => d.year),
+                    labels: useCaseData.map(d => d.label),
                     datasets: [{
-                        data: migrationData.map(d => d.pct),
-                        borderColor: '#60a5fa',
-                        backgroundColor: 'rgba(96, 165, 250, 0.1)',
-                        fill: true,
-                        tension: 0.4,
-                        pointRadius: 4,
-                        pointBackgroundColor: '#60a5fa'
+                        data: useCaseData.map(d => d.value),
+                        backgroundColor: useCaseData.map(d => d.color),
+                        borderRadius: 3,
+                        borderSkipped: false
                     }]
                 },
                 options: {
+                    indexAxis: 'y',
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: {
                         legend: { display: false },
                         tooltip: {
                             callbacks: {
-                                label: (context) => `${context.raw}% on Gnosis`
+                                label: (ctx) => ` ${ctx.raw} disputes`
                             }
                         }
                     },
                     scales: {
-                        x: { grid: { display: false }, ticks: { color: '#6b7280', font: { size: 9 } } },
-                        y: {
-                            min: 0,
-                            max: 100,
-                            grid: { color: 'rgba(255,255,255,0.03)' },
-                            ticks: {
-                                color: '#6b7280',
-                                font: { size: 9 },
-                                callback: v => v + '%'
-                            }
-                        }
+                        x: { grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: '#6b7280', font: { size: 9 } } },
+                        y: { grid: { display: false }, ticks: { color: '#9ca3af', font: { size: 9 } } }
                     }
                 }
             });
@@ -1416,7 +1411,7 @@
             initTimelineChart();
             initDistributionChart();
             initYearlyChart();
-            initMigrationChart();
+            initUseCaseChart();
             // V2 specific charts
             initV2CourtChart();
             initV2TimelineChart();
