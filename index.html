@@ -55,7 +55,8 @@
             <div class="glass rounded-xl p-4 glow">
                 <div class="text-gray-500 text-[10px] uppercase tracking-wider">Total Disputes</div>
                 <div class="text-2xl font-semibold mt-1" id="metric-disputes">2,600</div>
-                <div class="text-xs mt-1"><span class="text-green-400" id="metric-disputes-recent">+49</span> <span class="text-gray-600">last 30d</span></div>
+                <div class="text-[10px] text-gray-600 mt-0.5">1,675 ETH · 792 GNO · 133 ARB</div>
+                <div class="text-xs mt-1"><span class="text-green-400" id="metric-disputes-recent">+49</span> <span class="text-gray-600">last 30d · 38 GNO + 11 ARB</span></div>
             </div>
             <div class="glass rounded-xl p-4">
                 <div class="text-gray-500 text-[10px] uppercase tracking-wider">Active Courts</div>
@@ -383,8 +384,8 @@
         // ============ COURT DATA ============
         const courtsData = {
             gnosis: [
-                { id: 0, name: "General Court", last30d: 0, last90d: 1, lastYear: 1, allTime: 67, jurors: 122, parent: null },
-                { id: 1, name: "Curation", last30d: 36, last90d: 83, lastYear: 292, allTime: 613, jurors: 46, parent: 0 },
+                { id: 0, name: "General Court", last30d: 1, last90d: 2, lastYear: 2, allTime: 68, jurors: 122, parent: null },
+                { id: 1, name: "Curation", last30d: 35, last90d: 80, lastYear: 318, allTime: 598, jurors: 46, parent: 0 },
                 { id: 2, name: "English Language", last30d: 0, last90d: 0, lastYear: 0, allTime: 0, jurors: 6, parent: 0 },
                 { id: 3, name: "Spanish-English", last30d: 0, last90d: 0, lastYear: 0, allTime: 8, jurors: 2, parent: 2 },
                 { id: 4, name: "French-English", last30d: 0, last90d: 0, lastYear: 0, allTime: 3, jurors: 1, parent: 2 },
@@ -407,11 +408,11 @@
             ],
             // Kleros V2 on Arbitrum - data from KlerosCoreNeo contract reads
             arbitrum: [
-                { id: 29, name: "Consumer Disputes", last30d: 0, last90d: 0, lastYear: 80, allTime: 80, jurors: 15, parent: null },
-                { id: 32, name: "Defensores del Cliente", last30d: 11, last90d: 14, lastYear: 15, allTime: 15, jurors: 5, parent: 29 },
-                { id: 31, name: "Automated Curation", last30d: 0, last90d: 0, lastYear: 21, allTime: 21, jurors: 8, parent: 1 },
-                { id: 3, name: "Non-Technical", last30d: 0, last90d: 0, lastYear: 8, allTime: 8, jurors: 5, parent: 1 },
-                { id: 1, name: "General Court", last30d: 0, last90d: 0, lastYear: 6, allTime: 6, jurors: 39, parent: null },
+                { id: 29, name: "Consumer Disputes", last30d: 0, last90d: 0, lastYear: 68, allTime: 80, jurors: 15, parent: null },
+                { id: 32, name: "Defensores del Cliente", last30d: 11, last90d: 15, lastYear: 15, allTime: 15, jurors: 5, parent: 29 },
+                { id: 31, name: "Automated Curation", last30d: 0, last90d: 0, lastYear: 7, allTime: 21, jurors: 8, parent: 1 },
+                { id: 3, name: "Non-Technical", last30d: 0, last90d: 0, lastYear: 0, allTime: 8, jurors: 5, parent: 1 },
+                { id: 1, name: "General Court", last30d: 0, last90d: 0, lastYear: 5, allTime: 6, jurors: 39, parent: null },
                 { id: 24, name: "Humanity", last30d: 0, last90d: 0, lastYear: 3, allTime: 3, jurors: 4, parent: null },
             ]
         };
@@ -444,7 +445,7 @@
             { name: "Misc Arbitrables", allTime: 11, last30d: 0, last90d: 1, lastYear: 7, chain: "gnosis", icon: "🔗", desc: "Various integrations", url: "https://kleros.io", arbId: "0xae6aaed5" },
             // Arbitrum V2 - Universal Dispute Template Registry model
             { name: "Consumer Disputes (V2)", allTime: 80, last30d: 0, last90d: 0, lastYear: 80, chain: "arbitrum", icon: "🛒", desc: "Spanish consumer arbitration", url: "https://v2.kleros.builders", arbId: "0xb5526d02" },
-            { name: "Defensores del Cliente (V2)", allTime: 15, last30d: 11, last90d: 14, lastYear: 15, chain: "arbitrum", icon: "🏛️", desc: "Argentine consumer ombudsman disputes", url: "https://v2.kleros.builders", arbId: "0xb5526d02" },
+            { name: "Defensores del Cliente (V2)", allTime: 15, last30d: 11, last90d: 15, lastYear: 15, chain: "arbitrum", icon: "🏛️", desc: "Argentine consumer ombudsman disputes", url: "https://v2.kleros.builders", arbId: "0xb5526d02" },
             { name: "Automated Curation (V2)", allTime: 21, last30d: 0, last90d: 0, lastYear: 21, chain: "arbitrum", icon: "🤖", desc: "Curated lists on V2", url: "https://v2.kleros.builders", arbId: "0xb5526d02" },
             { name: "Non-Technical (V2)", allTime: 8, last30d: 0, last90d: 0, lastYear: 8, chain: "arbitrum", icon: "📄", desc: "General disputes V2", url: "https://v2.kleros.builders", arbId: "0xb5526d02" },
             { name: "Humanity (V2)", allTime: 3, last30d: 0, last90d: 0, lastYear: 3, chain: "arbitrum", icon: "👥", desc: "Identity verification V2", url: "https://v2.kleros.builders", arbId: "0xb5526d02" },
