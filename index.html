@@ -3,373 +3,597 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kleros Analytics Dashboard v2</title>
+    <title>Kleros Analytics — A Journal of On-Chain Arbitration</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600;9..144,700&family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
     <style>
-        * { font-family: 'Inter', sans-serif; }
-        body { background: #0a0a12; }
-        .glass { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); }
-        .glass-bright { background: rgba(255,255,255,0.04); }
-        .accent { color: #a78bfa; }
-        .glow { box-shadow: 0 0 60px rgba(139,92,246,0.08); }
-        .active-indicator { animation: glow-pulse 2s ease-in-out infinite; }
-        @keyframes glow-pulse {
-            0%, 100% { box-shadow: 0 0 8px rgba(34,197,94,0.4); }
-            50% { box-shadow: 0 0 16px rgba(34,197,94,0.6); }
+        :root {
+            --bg: oklch(14% 0.015 300);
+            --surface: oklch(17.5% 0.02 300);
+            --surface-2: oklch(21% 0.022 300);
+            --rule: oklch(30% 0.025 300 / 0.55);
+            --rule-strong: oklch(38% 0.03 300 / 0.7);
+            --text: oklch(95% 0.01 85);
+            --text-muted: oklch(66% 0.018 300);
+            --text-dim: oklch(48% 0.022 300);
+
+            --accent: oklch(72% 0.2 305);
+            --accent-ink: oklch(82% 0.16 305);
+            --accent-soft: oklch(72% 0.2 305 / 0.14);
+
+            --c-gnosis: oklch(74% 0.14 228);
+            --c-eth: oklch(70% 0.18 300);
+            --c-arb: oklch(76% 0.14 62);
+            --c-live: oklch(78% 0.18 150);
+
+            color-scheme: dark;
         }
-        .btn-active { background: rgba(139,92,246,0.2); color: #a78bfa; border-color: rgba(139,92,246,0.3); }
-        .btn-inactive { background: transparent; color: #6b7280; border-color: rgba(255,255,255,0.1); }
-        .court-row:hover { background: rgba(255,255,255,0.03); }
-        ::-webkit-scrollbar { width: 4px; }
+        * {
+            font-family: 'Geist', ui-sans-serif, system-ui, sans-serif;
+            font-feature-settings: "ss01", "cv11";
+        }
+        html, body { background: var(--bg); color: var(--text); }
+        body {
+            background-image:
+                radial-gradient(ellipse 90% 50% at 15% 0%, oklch(30% 0.08 305 / 0.18), transparent 70%),
+                radial-gradient(ellipse 70% 40% at 95% 10%, oklch(28% 0.07 240 / 0.10), transparent 70%);
+            background-attachment: fixed;
+        }
+
+        /* Typography */
+        .display {
+            font-family: 'Fraunces', ui-serif, Georgia, serif;
+            font-optical-sizing: auto;
+            font-variation-settings: "opsz" 96, "SOFT" 50, "WONK" 0;
+            letter-spacing: -0.025em;
+            line-height: 0.95;
+        }
+        .display-small {
+            font-family: 'Fraunces', ui-serif, Georgia, serif;
+            font-optical-sizing: auto;
+            font-variation-settings: "opsz" 24, "SOFT" 30;
+            letter-spacing: -0.015em;
+        }
+        .num {
+            font-variant-numeric: tabular-nums lining-nums;
+            font-feature-settings: "tnum", "lnum";
+        }
+        .num-display {
+            font-family: 'Fraunces', ui-serif, Georgia, serif;
+            font-optical-sizing: auto;
+            font-variation-settings: "opsz" 144, "SOFT" 70;
+            font-variant-numeric: tabular-nums lining-nums;
+            letter-spacing: -0.035em;
+            line-height: 0.9;
+        }
+        .mono {
+            font-family: 'Geist Mono', ui-monospace, monospace;
+            font-variant-numeric: tabular-nums;
+            letter-spacing: -0.01em;
+        }
+        .eyebrow {
+            font-family: 'Geist', sans-serif;
+            font-weight: 500;
+            font-size: 10px;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: var(--text-dim);
+        }
+
+        /* Flatten legacy containers — no glass, no blur, no glow */
+        .glass {
+            background: var(--surface);
+            border: 1px solid var(--rule);
+            border-radius: 2px;
+        }
+        .glass-bright {
+            background: var(--surface-2);
+            border: 1px solid var(--rule);
+            border-radius: 2px;
+        }
+        .glow { box-shadow: none; }
+
+        /* Surface variants */
+        .paper { background: var(--surface); border: 1px solid var(--rule); border-radius: 2px; }
+        .paper-bare { background: transparent; border: 0; }
+
+        .accent { color: var(--accent-ink); }
+
+        /* Active indicator — single small live dot, no halo */
+        .active-indicator {
+            animation: pulse-soft 2.4s ease-in-out infinite;
+        }
+        @keyframes pulse-soft {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.45; }
+        }
+
+        /* Buttons */
+        .btn-active {
+            background: var(--accent-soft);
+            color: var(--accent-ink);
+            border-color: oklch(72% 0.2 305 / 0.4);
+        }
+        .btn-inactive {
+            background: transparent;
+            color: var(--text-dim);
+            border-color: var(--rule);
+        }
+        .btn-inactive:hover {
+            color: var(--text-muted);
+            border-color: var(--rule-strong);
+        }
+
+        .court-row {
+            transition: background-color 180ms ease;
+        }
+        .court-row:hover { background: oklch(22% 0.02 300 / 0.5); }
+
+        /* Thin, branded scrollbar */
+        ::-webkit-scrollbar { width: 3px; height: 3px; }
         ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: rgba(139,92,246,0.2); border-radius: 2px; }
-        .slide-panel { transform: translateX(100%); transition: transform 0.3s ease; }
+        ::-webkit-scrollbar-thumb { background: var(--rule-strong); border-radius: 0; }
+        ::-webkit-scrollbar-thumb:hover { background: oklch(72% 0.2 305 / 0.5); }
+
+        /* Slide panel */
+        .slide-panel { transform: translateX(100%); transition: transform 320ms cubic-bezier(0.33, 1, 0.68, 1); }
         .slide-panel.open { transform: translateX(0); }
-        .tab-active { border-bottom: 2px solid #a78bfa; color: #a78bfa; }
-        .tab-inactive { border-bottom: 2px solid transparent; color: #6b7280; }
+        .slide-panel { background: var(--surface); border-left: 1px solid var(--rule-strong); backdrop-filter: none; }
+
+        .tab-active { border-bottom: 1px solid var(--accent-ink); color: var(--accent-ink); }
+        .tab-inactive { border-bottom: 1px solid transparent; color: var(--text-dim); }
+
+        /* Hairline rule */
+        .hr-thin { border-top: 1px solid var(--rule); }
+
+        /* Chain marks — small square dots, not rounded */
+        .mark { display: inline-block; width: 7px; height: 7px; flex-shrink: 0; }
+        .mark-g { background: var(--c-gnosis); }
+        .mark-e { background: var(--c-eth); }
+        .mark-a { background: var(--c-arb); }
+
+        /* Progress bars — thin, single-pixel, muted track */
+        .track {
+            height: 1px;
+            background: var(--rule);
+            overflow: hidden;
+            position: relative;
+        }
+        .track-fill {
+            height: 100%;
+            transition: width 400ms cubic-bezier(0.33, 1, 0.68, 1);
+        }
+
+        /* Staggered entrance */
+        @keyframes rise {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .rise { animation: rise 520ms cubic-bezier(0.22, 1, 0.36, 1) both; }
+
+        @media (prefers-reduced-motion: reduce) {
+            .active-indicator, .rise { animation: none; }
+            .track-fill { transition: none; }
+        }
+
+        /* Link underline that doesn't look dated */
+        .u-link {
+            color: var(--text-muted);
+            border-bottom: 1px solid var(--rule-strong);
+            padding-bottom: 1px;
+            transition: color 180ms ease, border-color 180ms ease;
+        }
+        .u-link:hover {
+            color: var(--accent-ink);
+            border-color: var(--accent-ink);
+        }
+
+        /* Delta pill — flat, no saturation spike */
+        .delta-up {
+            color: var(--c-live);
+            font-variant-numeric: tabular-nums;
+        }
+
+        /* Section lead — a confident serif section number */
+        .section-num {
+            font-family: 'Fraunces', serif;
+            font-variation-settings: "opsz" 24, "SOFT" 100;
+            font-style: italic;
+            color: var(--accent-ink);
+            font-size: 11px;
+            letter-spacing: 0.02em;
+        }
+
+        /* Ensure Tailwind bg/text utilities don't fight our palette where we opted out */
+        .no-ring:focus { outline: 1px solid var(--accent-ink); outline-offset: 2px; }
     </style>
 </head>
-<body class="min-h-screen text-white p-4 md:p-6">
-    <div class="max-w-7xl mx-auto space-y-5">
+<body class="min-h-screen">
+    <div class="max-w-[1240px] mx-auto px-5 md:px-8 py-8 md:py-12">
 
-        <!-- Header -->
-        <header class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-2">
-            <div>
-                <h1 class="text-xl md:text-2xl font-semibold tracking-tight">Kleros <span class="accent">Analytics</span></h1>
-                <p class="text-gray-600 text-xs mt-0.5">Decentralized Arbitration Protocol • V1 + V2 Data</p>
+        <!-- Masthead -->
+        <header class="rise" style="animation-delay: 0ms">
+            <div class="flex items-baseline justify-between gap-4 pb-3 border-b" style="border-color: var(--rule-strong)">
+                <div class="flex items-baseline gap-3">
+                    <span class="eyebrow">Vol. II</span>
+                    <span class="eyebrow" style="color: var(--text-muted)">April MMXXVI</span>
+                </div>
+                <span class="eyebrow">Ethereum · Gnosis · Arbitrum</span>
             </div>
-            <div class="flex items-center gap-3">
-                <div class="flex gap-1 p-1 glass rounded-lg">
-                    <button onclick="setChain('all')" id="btn-all" class="px-3 py-1.5 rounded text-xs font-medium border btn-active">All Chains</button>
-                    <button onclick="setChain('gnosis')" id="btn-gnosis" class="px-3 py-1.5 rounded text-xs font-medium border btn-inactive">Gnosis</button>
-                    <button onclick="setChain('mainnet')" id="btn-mainnet" class="px-3 py-1.5 rounded text-xs font-medium border btn-inactive">Ethereum</button>
-                    <button onclick="setChain('arbitrum')" id="btn-arbitrum" class="px-3 py-1.5 rounded text-xs font-medium border btn-inactive">Arbitrum <span class="text-[9px] text-orange-400">V2</span></button>
+            <div class="mt-4 md:mt-6 flex flex-col md:flex-row md:items-end md:justify-between gap-5">
+                <div>
+                    <h1 class="display text-[56px] md:text-[88px] leading-none">
+                        Kleros <span style="color: var(--accent-ink); font-style: italic; font-variation-settings: 'opsz' 144, 'SOFT' 100, 'WONK' 1;">Analytics</span>
+                    </h1>
+                    <p class="mt-3 text-sm max-w-xl" style="color: var(--text-muted)">A standing record of decentralized arbitration — courts, jurors, disputes — updated monthly from on-chain sources across V1 and V2.</p>
+                </div>
+                <div class="flex items-center gap-0 border" style="border-color: var(--rule)">
+                    <button onclick="setChain('all')" id="btn-all" class="px-3 py-2 text-[11px] font-medium border-r btn-active" style="border-color: var(--rule)">All</button>
+                    <button onclick="setChain('gnosis')" id="btn-gnosis" class="px-3 py-2 text-[11px] font-medium border-r btn-inactive" style="border-color: var(--rule)">Gnosis</button>
+                    <button onclick="setChain('mainnet')" id="btn-mainnet" class="px-3 py-2 text-[11px] font-medium border-r btn-inactive" style="border-color: var(--rule)">Ethereum</button>
+                    <button onclick="setChain('arbitrum')" id="btn-arbitrum" class="px-3 py-2 text-[11px] font-medium btn-inactive">Arbitrum <span class="ml-1" style="color: var(--c-arb)">·V2</span></button>
                 </div>
             </div>
         </header>
 
-        <!-- Key Metrics -->
-        <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
-            <div class="glass rounded-xl p-4 glow">
-                <div class="text-gray-500 text-[10px] uppercase tracking-wider">Total Disputes</div>
-                <div class="text-2xl font-semibold mt-1" id="metric-disputes">2,600</div>
-                <div class="text-[10px] text-gray-600 mt-0.5">1,675 ETH · 792 GNO · 133 ARB</div>
-                <div class="text-xs mt-1"><span class="text-green-400" id="metric-disputes-recent">+49</span> <span class="text-gray-600">last 30d · 38 GNO + 11 ARB</span></div>
+        <!-- Hero metric — asymmetric, typographic -->
+        <section class="rise mt-10 md:mt-14 grid grid-cols-12 gap-x-8 gap-y-8 items-end pb-10" style="animation-delay: 80ms; border-bottom: 1px solid var(--rule)">
+            <div class="col-span-12 md:col-span-7">
+                <div class="section-num">§ 01 — Protocol at a glance</div>
+                <div class="mt-2 flex items-baseline gap-4">
+                    <div class="num-display text-[120px] md:text-[180px]" id="metric-disputes">2,600</div>
+                    <div class="pb-3 md:pb-5">
+                        <div class="eyebrow">Total disputes</div>
+                        <div class="mt-1 text-sm num"><span class="delta-up" id="metric-disputes-recent">+49</span> <span style="color: var(--text-dim)">in the last 30 days</span></div>
+                    </div>
+                </div>
+                <div class="mt-3 flex items-center flex-wrap gap-x-5 gap-y-1 text-[12px] num" style="color: var(--text-muted)">
+                    <span class="inline-flex items-center gap-2"><span class="mark mark-e"></span> 1,675 Ethereum</span>
+                    <span class="inline-flex items-center gap-2"><span class="mark mark-g"></span> 792 Gnosis</span>
+                    <span class="inline-flex items-center gap-2"><span class="mark mark-a"></span> 133 Arbitrum <span style="color: var(--text-dim)">· V2</span></span>
+                </div>
             </div>
-            <div class="glass rounded-xl p-4">
-                <div class="text-gray-500 text-[10px] uppercase tracking-wider">Active Courts</div>
-                <div class="text-2xl font-semibold mt-1" id="metric-courts">50</div>
-                <div class="text-xs text-gray-600 mt-1" id="metric-courts-sub">19 GNO + 25 ETH + 6 ARB</div>
-            </div>
-            <div class="glass rounded-xl p-4">
-                <div class="text-gray-500 text-[10px] uppercase tracking-wider">Staked Jurors</div>
-                <div class="text-2xl font-semibold mt-1" id="metric-jurors">956</div>
-                <div class="text-xs text-gray-600 mt-1">915 V1 + 41 V2</div>
-            </div>
-            <div class="glass rounded-xl p-4">
-                <div class="text-gray-500 text-[10px] uppercase tracking-wider">Fees Paid</div>
-                <div class="text-2xl font-semibold mt-1" id="metric-fees">410 ETH</div>
-                <div class="text-xs text-gray-600 mt-1">≈ <span id="metric-fees-usd">$841K</span></div>
-            </div>
-            <div class="glass rounded-xl p-4">
-                <div class="text-gray-500 text-[10px] uppercase tracking-wider">PNK Redistributed</div>
-                <div class="text-2xl font-semibold mt-1" id="metric-pnk">149M</div>
-                <div class="text-xs text-gray-600 mt-1">≈ <span id="metric-pnk-usd">$1.64M</span></div>
-            </div>
-        </div>
 
-        <!-- Main Timeline Chart -->
-        <div class="glass rounded-xl p-4">
-            <div class="flex items-center justify-between mb-4">
+            <div class="col-span-6 md:col-span-1 hidden md:block" aria-hidden="true">
+                <div style="height: 120px; width: 1px; background: var(--rule); margin: 0 auto;"></div>
+            </div>
+
+            <div class="col-span-12 md:col-span-4 grid grid-cols-2 gap-x-6 gap-y-5">
                 <div>
-                    <h2 class="text-sm font-medium" id="timeline-title">Monthly Dispute Activity by Court</h2>
-                    <p class="text-[10px] text-gray-500 mt-0.5">Click on a court in the legend to focus • <span class="text-violet-400">Purple line</span> = total cases</p>
+                    <div class="eyebrow">Active courts</div>
+                    <div class="display-small text-3xl mt-1 num" id="metric-courts">50</div>
+                    <div class="text-[11px] mt-1 num" style="color: var(--text-dim)" id="metric-courts-sub">19 · 25 · 6</div>
+                </div>
+                <div>
+                    <div class="eyebrow">Staked jurors</div>
+                    <div class="display-small text-3xl mt-1 num" id="metric-jurors">956</div>
+                    <div class="text-[11px] mt-1 num" style="color: var(--text-dim)">915 V1 · 41 V2</div>
+                </div>
+                <div>
+                    <div class="eyebrow">Fees paid</div>
+                    <div class="display-small text-3xl mt-1 num" id="metric-fees">410<span class="text-lg" style="color: var(--text-muted)"> Ξ</span></div>
+                    <div class="text-[11px] mt-1 num" style="color: var(--text-dim)">≈ <span id="metric-fees-usd">$841K</span></div>
+                </div>
+                <div>
+                    <div class="eyebrow">PNK redistributed</div>
+                    <div class="display-small text-3xl mt-1 num" id="metric-pnk">149<span class="text-lg" style="color: var(--text-muted)"> M</span></div>
+                    <div class="text-[11px] mt-1 num" style="color: var(--text-dim)">≈ <span id="metric-pnk-usd">$1.64M</span></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Timeline — full bleed, no container -->
+        <section class="rise mt-10" style="animation-delay: 160ms">
+            <div class="flex items-end justify-between gap-4 mb-5 flex-wrap">
+                <div>
+                    <div class="section-num">§ 02 — Over time</div>
+                    <h2 class="display-small text-2xl md:text-3xl mt-1" id="timeline-title">Monthly dispute activity, by court</h2>
+                    <p class="text-[11px] mt-1" style="color: var(--text-dim)">Courts as stacked bars · <span style="color: var(--accent-ink)">accent line</span> totals every period</p>
                 </div>
                 <div class="flex items-center gap-3">
-                    <div class="flex gap-1">
-                        <button onclick="setTimelineView('stacked')" id="view-stacked" class="px-2 py-1 rounded text-[10px] font-medium btn-active">Stacked</button>
-                        <button onclick="setTimelineView('grouped')" id="view-grouped" class="px-2 py-1 rounded text-[10px] font-medium btn-inactive">Grouped</button>
+                    <div class="flex items-center border" style="border-color: var(--rule)">
+                        <button onclick="setTimelineView('stacked')" id="view-stacked" class="px-2.5 py-1 text-[10px] font-medium border-r btn-active" style="border-color: var(--rule)">Stacked</button>
+                        <button onclick="setTimelineView('grouped')" id="view-grouped" class="px-2.5 py-1 text-[10px] font-medium btn-inactive">Grouped</button>
                     </div>
-                    <div class="flex gap-1">
-                        <button onclick="setTimeRange('90d')" id="range-90d" class="px-2 py-1 rounded text-[10px] font-medium btn-inactive">90d</button>
-                        <button onclick="setTimeRange('12m')" id="range-12m" class="px-2 py-1 rounded text-[10px] font-medium btn-active">12m</button>
-                        <button onclick="setTimeRange('2y')" id="range-2y" class="px-2 py-1 rounded text-[10px] font-medium btn-inactive">2y</button>
-                        <button onclick="setTimeRange('all')" id="range-all" class="px-2 py-1 rounded text-[10px] font-medium btn-inactive">All</button>
+                    <div class="flex items-center border" style="border-color: var(--rule)">
+                        <button onclick="setTimeRange('90d')" id="range-90d" class="px-2.5 py-1 text-[10px] font-medium border-r btn-inactive" style="border-color: var(--rule)">90d</button>
+                        <button onclick="setTimeRange('12m')" id="range-12m" class="px-2.5 py-1 text-[10px] font-medium border-r btn-active" style="border-color: var(--rule)">12m</button>
+                        <button onclick="setTimeRange('2y')" id="range-2y" class="px-2.5 py-1 text-[10px] font-medium border-r btn-inactive" style="border-color: var(--rule)">2y</button>
+                        <button onclick="setTimeRange('all')" id="range-all" class="px-2.5 py-1 text-[10px] font-medium btn-inactive">All</button>
                     </div>
                 </div>
             </div>
-            <div style="height: 280px;"><canvas id="timelineChart"></canvas></div>
-        </div>
+            <div class="paper p-4 md:p-5">
+                <div style="height: 300px;"><canvas id="timelineChart"></canvas></div>
+            </div>
+        </section>
 
-        <!-- Two Column Layout -->
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+        <!-- Two Column — Courts + Charts -->
+        <section class="rise mt-10 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10" style="animation-delay: 220ms">
 
             <!-- Left: Courts -->
-            <div class="lg:col-span-5 space-y-4">
+            <div class="lg:col-span-5 space-y-10">
 
-                <!-- Courts by Activity -->
-                <div class="glass rounded-xl p-4">
-                    <div class="flex items-center justify-between mb-3">
-                        <h2 class="text-sm font-medium">Courts by Activity</h2>
-                        <div class="flex gap-1">
-                            <button onclick="setTimePeriod('30d')" id="period-30d" class="px-2 py-1 rounded text-[10px] font-medium btn-active">30d</button>
-                            <button onclick="setTimePeriod('90d')" id="period-90d" class="px-2 py-1 rounded text-[10px] font-medium btn-inactive">90d</button>
-                            <button onclick="setTimePeriod('1y')" id="period-1y" class="px-2 py-1 rounded text-[10px] font-medium btn-inactive">1y</button>
-                            <button onclick="setTimePeriod('all')" id="period-all" class="px-2 py-1 rounded text-[10px] font-medium btn-inactive">All</button>
+                <div>
+                    <div class="flex items-end justify-between mb-4 gap-3">
+                        <div>
+                            <div class="section-num">§ 03 — Courts</div>
+                            <h2 class="display-small text-xl md:text-2xl mt-1">By activity</h2>
+                        </div>
+                        <div class="flex items-center border" style="border-color: var(--rule)">
+                            <button onclick="setTimePeriod('30d')" id="period-30d" class="px-2 py-1 text-[10px] font-medium border-r btn-active" style="border-color: var(--rule)">30d</button>
+                            <button onclick="setTimePeriod('90d')" id="period-90d" class="px-2 py-1 text-[10px] font-medium border-r btn-inactive" style="border-color: var(--rule)">90d</button>
+                            <button onclick="setTimePeriod('1y')" id="period-1y" class="px-2 py-1 text-[10px] font-medium border-r btn-inactive" style="border-color: var(--rule)">1y</button>
+                            <button onclick="setTimePeriod('all')" id="period-all" class="px-2 py-1 text-[10px] font-medium btn-inactive">All</button>
                         </div>
                     </div>
 
-                    <div id="courts-list" class="space-y-1 max-h-[300px] overflow-y-auto pr-1">
+                    <div id="courts-list" class="max-h-[340px] overflow-y-auto pr-1">
                         <!-- Populated by JS -->
                     </div>
 
-                    <button onclick="toggleShowAll()" id="show-more-btn" class="w-full mt-3 py-2 text-xs text-gray-500 hover:text-gray-300 transition">
-                        Show all courts →
+                    <button onclick="toggleShowAll()" id="show-more-btn" class="mt-4 text-[11px] u-link">
+                        Show all courts
                     </button>
                 </div>
 
-                <!-- Court Distribution Donut -->
-                <div class="glass rounded-xl p-4">
-                    <h2 class="text-sm font-medium mb-3">Dispute Distribution</h2>
-                    <div class="flex items-center gap-4">
+                <!-- Distribution -->
+                <div>
+                    <div class="section-num">§ 04 — Distribution</div>
+                    <h2 class="display-small text-xl md:text-2xl mt-1 mb-4">Share of disputes</h2>
+                    <div class="flex items-center gap-6">
                         <div style="width: 140px; height: 140px;"><canvas id="distributionChart"></canvas></div>
-                        <div id="distribution-legend" class="flex-1 text-xs space-y-1">
+                        <div id="distribution-legend" class="flex-1 text-[12px] space-y-2 num">
                             <!-- Populated by JS -->
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Right: Charts & Apps -->
-            <div class="lg:col-span-7 space-y-4">
+            <!-- Right: Apps + Charts -->
+            <div class="lg:col-span-7 space-y-10">
 
                 <!-- Applications -->
-                <div class="glass rounded-xl p-4">
-                    <div class="flex items-center justify-between mb-3">
-                        <div class="flex items-center gap-3">
-                            <h2 class="text-sm font-medium">Applications Using Kleros</h2>
-                            <div class="flex gap-1">
-                                <button onclick="setAppsPeriod('30d')" id="apps-30d" class="px-2 py-0.5 rounded text-[9px] font-medium btn-inactive">30d</button>
-                                <button onclick="setAppsPeriod('90d')" id="apps-90d" class="px-2 py-0.5 rounded text-[9px] font-medium btn-inactive">90d</button>
-                                <button onclick="setAppsPeriod('1y')" id="apps-1y" class="px-2 py-0.5 rounded text-[9px] font-medium btn-inactive">1y</button>
-                                <button onclick="setAppsPeriod('all')" id="apps-all" class="px-2 py-0.5 rounded text-[9px] font-medium btn-active">All</button>
-                            </div>
+                <div>
+                    <div class="flex items-end justify-between mb-4 gap-3 flex-wrap">
+                        <div>
+                            <div class="section-num">§ 05 — Applications</div>
+                            <h2 class="display-small text-xl md:text-2xl mt-1">Built on Kleros</h2>
                         </div>
-                        <span class="text-[10px] text-gray-500" id="apps-count">13 apps</span>
+                        <div class="flex items-center gap-3">
+                            <div class="flex items-center border" style="border-color: var(--rule)">
+                                <button onclick="setAppsPeriod('30d')" id="apps-30d" class="px-2 py-1 text-[10px] font-medium border-r btn-inactive" style="border-color: var(--rule)">30d</button>
+                                <button onclick="setAppsPeriod('90d')" id="apps-90d" class="px-2 py-1 text-[10px] font-medium border-r btn-inactive" style="border-color: var(--rule)">90d</button>
+                                <button onclick="setAppsPeriod('1y')" id="apps-1y" class="px-2 py-1 text-[10px] font-medium border-r btn-inactive" style="border-color: var(--rule)">1y</button>
+                                <button onclick="setAppsPeriod('all')" id="apps-all" class="px-2 py-1 text-[10px] font-medium btn-active">All</button>
+                            </div>
+                            <span class="text-[10px] num" id="apps-count" style="color: var(--text-dim)">13 apps</span>
+                        </div>
                     </div>
-                    <div class="grid grid-cols-2 gap-2" id="apps-grid">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-0 border-t border-l" style="border-color: var(--rule)" id="apps-grid">
                         <!-- Populated by JS -->
                     </div>
                 </div>
 
-                <!-- Year over Year + Migration -->
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="glass rounded-xl p-4">
-                        <h2 class="text-sm font-medium mb-2">Yearly Comparison</h2>
-                        <div style="height: 150px;"><canvas id="yearlyChart"></canvas></div>
+                <!-- Yearly + Use Case, asymmetric -->
+                <div class="grid grid-cols-5 gap-6">
+                    <div class="col-span-5 md:col-span-3">
+                        <div class="section-num">§ 06 — Yearly</div>
+                        <h2 class="display-small text-xl md:text-2xl mt-1 mb-3">By year and chain</h2>
+                        <div class="paper p-4" style="height: 220px"><canvas id="yearlyChart"></canvas></div>
                     </div>
-                    <div class="glass rounded-xl p-4">
-                        <h2 class="text-sm font-medium mb-2">Disputes by Use Case</h2>
-                        <div style="height: 150px;"><canvas id="useCaseChart"></canvas></div>
-                        <div class="text-center text-[10px] text-gray-500 mt-1">all-time, across V1 + V2</div>
+                    <div class="col-span-5 md:col-span-2">
+                        <div class="section-num">§ 07 — Use cases</div>
+                        <h2 class="display-small text-xl md:text-2xl mt-1 mb-3">What gets arbitrated</h2>
+                        <div class="paper p-4" style="height: 220px"><canvas id="useCaseChart"></canvas></div>
+                        <p class="text-[10px] mt-2" style="color: var(--text-dim)">All-time, V1 + V2 combined</p>
                     </div>
                 </div>
 
                 <!-- Juror Economics -->
-                <div class="glass rounded-xl p-4">
-                    <h2 class="text-sm font-medium mb-3">Juror Economics</h2>
-                    <div class="grid grid-cols-4 gap-3 text-center">
-                        <div class="glass-bright rounded-lg p-3">
-                            <div class="text-lg font-semibold">0.015</div>
-                            <div class="text-[10px] text-gray-500">ETH/Vote (V1)</div>
-                            <div class="text-[10px] text-green-400">~$31</div>
+                <div>
+                    <div class="section-num">§ 08 — Juror economics</div>
+                    <h2 class="display-small text-xl md:text-2xl mt-1 mb-4">Per-vote and reference</h2>
+                    <div class="grid grid-cols-4 border-l border-t" style="border-color: var(--rule)">
+                        <div class="p-4 border-r border-b" style="border-color: var(--rule)">
+                            <div class="eyebrow">ETH/Vote · V1</div>
+                            <div class="display-small text-2xl mt-1 num">0.015</div>
+                            <div class="text-[11px] num mt-1 delta-up">≈ $31</div>
                         </div>
-                        <div class="glass-bright rounded-lg p-3">
-                            <div class="text-lg font-semibold">0.0054</div>
-                            <div class="text-[10px] text-gray-500">ETH/Vote (V2)</div>
-                            <div class="text-[10px] text-green-400">~$11</div>
+                        <div class="p-4 border-r border-b" style="border-color: var(--rule)">
+                            <div class="eyebrow">ETH/Vote · V2</div>
+                            <div class="display-small text-2xl mt-1 num">0.0054</div>
+                            <div class="text-[11px] num mt-1 delta-up">≈ $11</div>
                         </div>
-                        <div class="glass-bright rounded-lg p-3">
-                            <div class="text-lg font-semibold">$2,050</div>
-                            <div class="text-[10px] text-gray-500">ETH Price</div>
+                        <div class="p-4 border-r border-b" style="border-color: var(--rule)">
+                            <div class="eyebrow">ETH Price</div>
+                            <div class="display-small text-2xl mt-1 num">$2,050</div>
+                            <div class="text-[11px] num mt-1" style="color: var(--text-dim)">spot, today</div>
                         </div>
-                        <div class="glass-bright rounded-lg p-3">
-                            <div class="text-lg font-semibold">$0.011</div>
-                            <div class="text-[10px] text-gray-500">PNK Price</div>
+                        <div class="p-4 border-r border-b" style="border-color: var(--rule)">
+                            <div class="eyebrow">PNK Price</div>
+                            <div class="display-small text-2xl mt-1 num">$0.011</div>
+                            <div class="text-[11px] num mt-1" style="color: var(--text-dim)">spot, today</div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
+        </section>
 
-        <!-- Kleros V2 Section -->
-        <div class="glass rounded-xl p-4 border border-orange-500/20">
-            <div class="flex items-center justify-between mb-4">
-                <div class="flex items-center gap-2">
-                    <h2 class="text-sm font-medium">Kleros V2 <span class="text-orange-400">(Arbitrum)</span></h2>
-                    <span class="px-2 py-0.5 rounded text-[9px] bg-orange-500/20 text-orange-400">NEW</span>
+        <!-- Kleros V2 — standalone editorial feature -->
+        <section class="rise mt-16 md:mt-20" style="animation-delay: 320ms">
+            <div class="flex items-end justify-between gap-4 pb-5 border-b" style="border-color: var(--rule-strong)">
+                <div>
+                    <div class="section-num" style="color: var(--c-arb)">§ 09 — A new chain</div>
+                    <h2 class="display text-4xl md:text-5xl mt-2">Kleros <em style="color: var(--c-arb); font-variation-settings: 'opsz' 96, 'SOFT' 100, 'WONK' 1">V2</em>, on Arbitrum</h2>
+                    <p class="mt-3 text-sm max-w-xl" style="color: var(--text-muted)">A redesigned protocol with fresh courts, faster rulings, and the first consumer-arbitration integrations from Argentina.</p>
                 </div>
-                <a href="https://v2.kleros.builders" target="_blank" class="text-[10px] text-gray-500 hover:text-gray-300">View V2 Dashboard →</a>
+                <a href="https://v2.kleros.builders" target="_blank" class="text-[11px] u-link hidden md:inline">View V2 dashboard</a>
             </div>
 
-            <!-- V2 Key Stats -->
-            <div class="grid grid-cols-2 md:grid-cols-6 gap-3 mb-4">
-                <div class="glass-bright rounded-lg p-3 text-center">
-                    <div class="text-xl font-semibold text-orange-400">133</div>
-                    <div class="text-[10px] text-gray-500">Total Cases</div>
+            <!-- V2 Key Stats — flat grid with hairline rules -->
+            <div class="mt-6 grid grid-cols-2 md:grid-cols-6 border-l border-t" style="border-color: var(--rule)">
+                <div class="p-4 border-r border-b" style="border-color: var(--rule)">
+                    <div class="eyebrow">Total cases</div>
+                    <div class="display-small text-3xl mt-1 num" style="color: var(--c-arb)">133</div>
                 </div>
-                <div class="glass-bright rounded-lg p-3 text-center">
-                    <div class="text-xl font-semibold">41</div>
-                    <div class="text-[10px] text-gray-500">Active Jurors</div>
+                <div class="p-4 border-r border-b" style="border-color: var(--rule)">
+                    <div class="eyebrow">Active jurors</div>
+                    <div class="display-small text-3xl mt-1 num">41</div>
                 </div>
-                <div class="glass-bright rounded-lg p-3 text-center">
-                    <div class="text-xl font-semibold">775K</div>
-                    <div class="text-[10px] text-gray-500">PNK Staked</div>
+                <div class="p-4 border-r border-b" style="border-color: var(--rule)">
+                    <div class="eyebrow">PNK staked</div>
+                    <div class="display-small text-3xl mt-1 num">775<span class="text-lg" style="color: var(--text-muted)"> K</span></div>
                 </div>
-                <div class="glass-bright rounded-lg p-3 text-center">
-                    <div class="text-xl font-semibold">3.53</div>
-                    <div class="text-[10px] text-gray-500">ETH Paid</div>
+                <div class="p-4 border-r border-b" style="border-color: var(--rule)">
+                    <div class="eyebrow">ETH paid</div>
+                    <div class="display-small text-3xl mt-1 num">3.53</div>
                 </div>
-                <div class="glass-bright rounded-lg p-3 text-center">
-                    <div class="text-xl font-semibold">189K</div>
-                    <div class="text-[10px] text-gray-500">PNK Redistributed</div>
+                <div class="p-4 border-r border-b" style="border-color: var(--rule)">
+                    <div class="eyebrow">PNK redistributed</div>
+                    <div class="display-small text-3xl mt-1 num">189<span class="text-lg" style="color: var(--text-muted)"> K</span></div>
                 </div>
-                <div class="glass-bright rounded-lg p-3 text-center">
-                    <div class="text-xl font-semibold">6</div>
-                    <div class="text-[10px] text-gray-500">Active Courts</div>
-                </div>
-            </div>
-
-            <!-- V2 Charts Row -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <!-- V2 Court Distribution -->
-                <div class="glass-bright rounded-lg p-3">
-                    <h3 class="text-xs font-medium mb-2 text-gray-400">V2 Court Distribution</h3>
-                    <div style="height: 140px;"><canvas id="v2CourtChart"></canvas></div>
-                </div>
-
-                <!-- V2 Activity Timeline -->
-                <div class="glass-bright rounded-lg p-3">
-                    <h3 class="text-xs font-medium mb-2 text-gray-400">V2 Monthly Activity</h3>
-                    <div style="height: 140px;"><canvas id="v2TimelineChart"></canvas></div>
-                </div>
-
-                <!-- V2 Growth -->
-                <div class="glass-bright rounded-lg p-3">
-                    <h3 class="text-xs font-medium mb-2 text-gray-400">V2 Cumulative Growth</h3>
-                    <div style="height: 140px;"><canvas id="v2GrowthChart"></canvas></div>
+                <div class="p-4 border-r border-b" style="border-color: var(--rule)">
+                    <div class="eyebrow">Active courts</div>
+                    <div class="display-small text-3xl mt-1 num">6</div>
                 </div>
             </div>
 
-            <!-- V2 Enterprise Consumer Disputes Categories -->
-            <div class="mt-4">
-                <h3 class="text-xs font-medium mb-2 text-gray-400">Enterprise Consumer Disputes Categories <span class="text-orange-400">(95 cases)</span></h3>
-                <p class="text-[9px] text-gray-600 mb-2">Argentine consumer arbitration integrations - Lemon, Metlife, Government entities</p>
-                <div class="grid grid-cols-2 md:grid-cols-5 gap-2" id="v2-consumer-categories">
+            <!-- V2 Charts — three panels -->
+            <div class="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div>
+                    <div class="eyebrow mb-3">Court distribution</div>
+                    <div class="paper p-4" style="height: 180px"><canvas id="v2CourtChart"></canvas></div>
+                </div>
+                <div>
+                    <div class="eyebrow mb-3">Monthly activity</div>
+                    <div class="paper p-4" style="height: 180px"><canvas id="v2TimelineChart"></canvas></div>
+                </div>
+                <div>
+                    <div class="eyebrow mb-3">Cumulative growth</div>
+                    <div class="paper p-4" style="height: 180px"><canvas id="v2GrowthChart"></canvas></div>
+                </div>
+            </div>
+
+            <!-- Enterprise Consumer Disputes -->
+            <div class="mt-10">
+                <div class="flex items-end justify-between gap-3 mb-4">
+                    <div>
+                        <div class="section-num" style="color: var(--c-arb)">§ 10 — Enterprise consumer arbitration</div>
+                        <h3 class="display-small text-xl md:text-2xl mt-1">Argentine integrations <span class="num" style="color: var(--text-muted); font-family: 'Geist'; font-weight: 400;">· 95 cases</span></h3>
+                    </div>
+                </div>
+                <p class="text-[12px] max-w-2xl" style="color: var(--text-muted)">Lemon, Metlife, and provincial governments in Argentina now route consumer disputes through Kleros V2.</p>
+                <div class="mt-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 border-l border-t" style="border-color: var(--rule)" id="v2-consumer-categories">
                     <!-- Populated by JS -->
                 </div>
             </div>
 
             <!-- V2 Courts Table -->
-            <div class="mt-4">
-                <h3 class="text-xs font-medium mb-2 text-gray-400">V2 Courts Activity</h3>
-                <div class="space-y-1" id="v2-courts-list">
+            <div class="mt-10">
+                <div class="section-num" style="color: var(--c-arb)">§ 11 — Court ledger</div>
+                <h3 class="display-small text-xl md:text-2xl mt-1 mb-4">V2 courts, ranked</h3>
+                <div class="paper">
+                    <div id="v2-courts-list">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Recent Cases -->
+        <section class="rise mt-16" style="animation-delay: 380ms">
+            <div class="flex items-end justify-between mb-5 gap-4">
+                <div>
+                    <div class="section-num">§ 12 — Latest</div>
+                    <h2 class="display-small text-xl md:text-2xl mt-1">Recent disputes</h2>
+                </div>
+                <a href="https://klerosboard.com" target="_blank" class="text-[11px] u-link">View all on Klerosboard</a>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 border-l border-t" style="border-color: var(--rule)" id="recent-cases">
+                <!-- Populated by JS -->
+            </div>
+        </section>
+
+        <!-- AI Curation — editorial feature -->
+        <section class="rise mt-16 md:mt-20" style="animation-delay: 420ms">
+            <div class="pb-5 border-b" style="border-color: var(--rule-strong)">
+                <div class="section-num">§ 13 — In the margins</div>
+                <h2 class="display text-3xl md:text-4xl mt-2"><em style="font-variation-settings: 'opsz' 96, 'SOFT' 100, 'WONK' 1">AI-assisted</em> curation</h2>
+                <p class="mt-3 text-sm max-w-2xl" style="color: var(--text-muted)">Automated content curation where AI screens submissions and jurors adjudicate edge cases. Live on V2 Arbitrum for sports calls, image similarity, and fact-checking.</p>
+            </div>
+
+            <!-- AI Stats -->
+            <div class="mt-6 grid grid-cols-2 md:grid-cols-4 border-l border-t" style="border-color: var(--rule)">
+                <div class="p-4 border-r border-b" style="border-color: var(--rule)">
+                    <div class="eyebrow">Total cases</div>
+                    <div class="display-small text-3xl mt-1 num accent">21</div>
+                </div>
+                <div class="p-4 border-r border-b" style="border-color: var(--rule)">
+                    <div class="eyebrow">Categories</div>
+                    <div class="display-small text-3xl mt-1 num">3</div>
+                </div>
+                <div class="p-4 border-r border-b" style="border-color: var(--rule)">
+                    <div class="eyebrow">Active jurors</div>
+                    <div class="display-small text-3xl mt-1 num">8</div>
+                </div>
+                <div class="p-4 border-r border-b" style="border-color: var(--rule)">
+                    <div class="eyebrow">Resolved</div>
+                    <div class="display-small text-3xl mt-1 num">100<span class="text-lg" style="color: var(--text-muted)">%</span></div>
+                </div>
+            </div>
+
+            <!-- AI Curation Categories counts -->
+            <div class="mt-8">
+                <div class="eyebrow mb-3">Category breakdown</div>
+                <div class="grid grid-cols-1 md:grid-cols-3 border-l border-t" style="border-color: var(--rule)" id="v2-curation-categories">
                     <!-- Populated by JS -->
                 </div>
             </div>
-        </div>
 
-        <!-- Recent Cases -->
-        <div class="glass rounded-xl p-4">
-            <div class="flex items-center justify-between mb-3">
-                <h2 class="text-sm font-medium">Recent Disputes</h2>
-                <a href="https://klerosboard.com" target="_blank" class="text-[10px] text-gray-500 hover:text-gray-300">View all on Klerosboard →</a>
+            <!-- Category Descriptions — three editorial blurbs -->
+            <div class="mt-10 grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-10">
+                <article>
+                    <div class="section-num">i.</div>
+                    <h3 class="display-small text-lg mt-1 mb-2">Sports curation</h3>
+                    <p class="text-[12px] leading-relaxed" style="color: var(--text-muted)">AI flags controversial referee calls and sports disputes; jurors review each one for accuracy and fairness. The model learns where it's confident and where it needs human judgment.</p>
+                </article>
+                <article>
+                    <div class="section-num">ii.</div>
+                    <h3 class="display-small text-lg mt-1 mb-2">Image similarity</h3>
+                    <p class="text-[12px] leading-relaxed" style="color: var(--text-muted)">Perceptual-hash comparisons for intellectual property claims. Submitted artwork is matched against prior claims; borderline cases rise to a jury panel.</p>
+                </article>
+                <article>
+                    <div class="section-num">iii.</div>
+                    <h3 class="display-small text-lg mt-1 mb-2">Fact-checking</h3>
+                    <p class="text-[12px] leading-relaxed" style="color: var(--text-muted)">Claim-level verification with jurors as the final word. Misinformation is surfaced by AI and tagged by jurors, producing a provable dispute record.</p>
+                </article>
             </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2" id="recent-cases">
-                <!-- Populated by JS -->
-            </div>
-        </div>
-
-        <!-- AI Curation Section -->
-        <div class="glass rounded-xl p-4 border border-cyan-500/20">
-            <div class="flex items-center justify-between mb-4">
-                <div class="flex items-center gap-2">
-                    <h2 class="text-sm font-medium">AI-Assisted Curation <span class="text-cyan-400">(V2 Arbitrum)</span></h2>
-                    <span class="px-2 py-0.5 rounded text-[9px] bg-cyan-500/20 text-cyan-400">🤖 AI</span>
-                </div>
-                <a href="https://v2.kleros.builders" target="_blank" class="text-[10px] text-gray-500 hover:text-gray-300">View on V2 Dashboard →</a>
-            </div>
-
-            <p class="text-xs text-gray-500 mb-4">Automated content curation using AI to assist jurors in evaluating submissions for sports calls, image similarity, and fact-checking.</p>
-
-            <!-- AI Curation Stats -->
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
-                <div class="glass-bright rounded-lg p-3 text-center">
-                    <div class="text-xl font-semibold text-cyan-400">21</div>
-                    <div class="text-[10px] text-gray-500">Total Cases</div>
-                </div>
-                <div class="glass-bright rounded-lg p-3 text-center">
-                    <div class="text-xl font-semibold">3</div>
-                    <div class="text-[10px] text-gray-500">Categories</div>
-                </div>
-                <div class="glass-bright rounded-lg p-3 text-center">
-                    <div class="text-xl font-semibold">8</div>
-                    <div class="text-[10px] text-gray-500">Active Jurors</div>
-                </div>
-                <div class="glass-bright rounded-lg p-3 text-center">
-                    <div class="text-xl font-semibold">100%</div>
-                    <div class="text-[10px] text-gray-500">Resolved</div>
-                </div>
-            </div>
-
-            <!-- AI Curation Categories -->
-            <h3 class="text-xs font-medium mb-2 text-gray-400">Curation Categories</h3>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-3" id="v2-curation-categories">
-                <!-- Populated by JS -->
-            </div>
-
-            <!-- Category Descriptions -->
-            <div class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-3">
-                <div class="glass-bright rounded-lg p-3">
-                    <div class="flex items-center gap-2 mb-2">
-                        <span class="text-lg">⚽</span>
-                        <span class="text-xs font-medium">Sports Curation</span>
-                    </div>
-                    <p class="text-[10px] text-gray-500">AI assists in evaluating controversial sports calls and referee decisions. Jurors review AI-flagged content for accuracy and fairness.</p>
-                </div>
-                <div class="glass-bright rounded-lg p-3">
-                    <div class="flex items-center gap-2 mb-2">
-                        <span class="text-lg">🖼️</span>
-                        <span class="text-xs font-medium">IP / Image Similarity</span>
-                    </div>
-                    <p class="text-[10px] text-gray-500">AI-powered image comparison for intellectual property disputes. Detects similar or potentially infringing visual content.</p>
-                </div>
-                <div class="glass-bright rounded-lg p-3">
-                    <div class="flex items-center gap-2 mb-2">
-                        <span class="text-lg">📰</span>
-                        <span class="text-xs font-medium">Fake News Detection</span>
-                    </div>
-                    <p class="text-[10px] text-gray-500">Fact-checking curation with AI assistance. Helps jurors evaluate claims and identify misinformation in submitted content.</p>
-                </div>
-            </div>
-        </div>
+        </section>
 
         <!-- Footer -->
-        <footer class="text-center text-gray-700 text-[10px] py-2">
-            Data from Kleros V1 & V2 Subgraphs • Updated April 2026 •
-            <a href="https://klerosboard.com" target="_blank" class="hover:text-gray-500">klerosboard.com</a> •
-            <a href="https://v2.kleros.builders" target="_blank" class="hover:text-gray-500">v2.kleros.builders</a>
+        <footer class="mt-20 pt-6 border-t flex flex-col md:flex-row md:items-center md:justify-between gap-3 text-[11px]" style="border-color: var(--rule); color: var(--text-dim)">
+            <div class="flex items-center gap-3">
+                <span class="eyebrow" style="color: var(--text-muted)">Colophon</span>
+                <span>Data drawn from Kleros V1 + V2 subgraphs, April MMXXVI.</span>
+            </div>
+            <div class="flex items-center gap-5">
+                <a href="https://klerosboard.com" target="_blank" class="u-link">klerosboard.com</a>
+                <a href="https://v2.kleros.builders" target="_blank" class="u-link">v2.kleros.builders</a>
+                <a href="https://kleros.io" target="_blank" class="u-link">kleros.io</a>
+            </div>
         </footer>
     </div>
 
     <!-- Court Detail Slide Panel -->
-    <div id="court-panel" class="slide-panel fixed top-0 right-0 h-full w-full md:w-96 glass z-50 overflow-y-auto">
-        <div class="p-4">
-            <div class="flex items-center justify-between mb-4">
-                <h3 class="text-lg font-semibold" id="panel-court-name">Court Name</h3>
-                <button onclick="closeCourtPanel()" class="text-gray-500 hover:text-white text-xl">&times;</button>
+    <div id="court-panel" class="slide-panel fixed top-0 right-0 h-full w-full md:w-[420px] z-50 overflow-y-auto">
+        <div class="p-6 md:p-8">
+            <div class="flex items-start justify-between mb-6 pb-4 border-b" style="border-color: var(--rule)">
+                <h3 class="display-small text-2xl" id="panel-court-name">Court Name</h3>
+                <button onclick="closeCourtPanel()" class="text-2xl leading-none px-2" style="color: var(--text-dim); line-height: 1" aria-label="Close">&times;</button>
             </div>
             <div id="panel-content">
                 <!-- Populated by JS -->
@@ -486,11 +710,11 @@
 
         // V2 Consumer Disputes Category Breakdown (verified from contract reads Mar 2026)
         // Courts 29 (Consumer) + 32 (Defensores del Cliente) = 95 total consumer cases
+        // Junín = 17 (Consumer Disputes court 29) + 15 (Defensores del Cliente court 32, spun up 2026 for this integrator)
         const v2ConsumerCategories = [
-            { name: "Lemon", count: 35, icon: "🍋", desc: "Fintech - e-commerce disputes" },
-            { name: "Junín", count: 17, icon: "🏛️", desc: "Municipality (Buenos Aires province)" },
+            { name: "Junín", count: 32, icon: "🏛️", desc: "Municipality (Buenos Aires province) — 17 via Court 29, 15 via Court 32 (Defensores del Cliente)" },
+            { name: "Lemon", count: 35, icon: "🍋", desc: "Fintech — e-commerce disputes" },
             { name: "Metlife", count: 14, icon: "🛡️", desc: "Insurance company disputes" },
-            { name: "Defensor del Cliente", count: 15, icon: "🏛️", desc: "Consumer ombudsman court (Court 32)" },
             { name: "Mendoza", count: 2, icon: "🍇", desc: "Mendoza province (incl. Lavalle)" },
             { name: "Gov. Entities", count: 1, icon: "🏢", desc: "Government entity disputes" },
             { name: "CABA", count: 1, icon: "🏙️", desc: "Buenos Aires City" },
@@ -544,32 +768,50 @@
         let timeRange = '12m';
         let timelineChart, distributionChart, yearlyChart, useCaseChart;
 
-        // ============ COURT COLORS ============
+        // ============ COURT COLORS (editorial palette — tuned via OKLCH) ============
         const courtColors = {
-            // Gnosis
-            'Curation': '#60a5fa',
-            'General Court': '#3b82f6',
-            'Oracle': '#06b6d4',
-            'Blockchain (ES)': '#22d3ee',
-            'JavaScript': '#14b8a6',
-            'Solidity': '#10b981',
-            'Spanish-English': '#34d399',
-            'French-English': '#4ade80',
-            'Chinese-English': '#a3e635',
-            'Development': '#84cc16',
-            // Mainnet
-            'Humanity Court': '#a78bfa',
-            'Non-Technical': '#8b5cf6',
-            'Technical': '#7c3aed',
-            'Token Listing': '#6366f1',
-            'Portuguese-English': '#818cf8',
-            'Tags Registry': '#c4b5fd',
-            // Arbitrum V2
-            'Consumer Disputes': '#f97316',
-            'Defensores del Cliente': '#ea580c',
-            'Automated Curation': '#fb923c',
-            'Humanity': '#fdba74',
+            // Gnosis family — cool blues
+            'Curation':           'oklch(74% 0.14 228)',
+            'General Court':      'oklch(64% 0.14 232)',
+            'Oracle':             'oklch(78% 0.11 210)',
+            'Blockchain (ES)':    'oklch(70% 0.12 222)',
+            'JavaScript':         'oklch(74% 0.10 200)',
+            'Solidity':           'oklch(68% 0.11 205)',
+            'Spanish-English':    'oklch(80% 0.09 215)',
+            'French-English':     'oklch(84% 0.08 220)',
+            'Chinese-English':    'oklch(86% 0.07 225)',
+            'Development':        'oklch(72% 0.10 210)',
+            // Mainnet family — violets
+            'Humanity Court':     'oklch(70% 0.18 300)',
+            'Non-Technical':      'oklch(64% 0.18 305)',
+            'Technical':          'oklch(58% 0.18 300)',
+            'Token Listing':      'oklch(76% 0.15 300)',
+            'Portuguese-English': 'oklch(72% 0.14 295)',
+            'Tags Registry':      'oklch(82% 0.10 300)',
+            // Arbitrum V2 — warm ochres/siennas
+            'Consumer Disputes':    'oklch(76% 0.14 62)',
+            'Defensores del Cliente': 'oklch(68% 0.16 52)',
+            'Automated Curation':   'oklch(82% 0.11 68)',
+            'Humanity':             'oklch(84% 0.09 72)',
         };
+
+        // Chart.js editorial theme
+        const CHART = {
+            text: 'oklch(66% 0.018 300)',
+            textDim: 'oklch(48% 0.022 300)',
+            grid: 'oklch(30% 0.025 300 / 0.35)',
+            accent: 'oklch(82% 0.16 305)',
+            gnosis: 'oklch(74% 0.14 228)',
+            eth: 'oklch(70% 0.18 300)',
+            arb: 'oklch(76% 0.14 62)',
+            font: { family: 'Geist', size: 10 }
+        };
+        if (typeof Chart !== 'undefined') {
+            Chart.defaults.font.family = 'Geist, ui-sans-serif';
+            Chart.defaults.font.size = 10;
+            Chart.defaults.color = CHART.text;
+            Chart.defaults.borderColor = CHART.grid;
+        }
 
         // ============ HELPER FUNCTIONS ============
         function getActivityValue(court) {
@@ -671,25 +913,26 @@
                 const pct = (activity / maxActivity) * 100;
                 const pctTotal = totalActivity > 0 ? ((activity / totalActivity) * 100).toFixed(1) : 0;
                 const isActive = court.last30d > 0;
-                const chainColor = court.chain === 'gnosis' ? 'bg-blue-400' : court.chain === 'arbitrum' ? 'bg-orange-400' : 'bg-violet-400';
-                const chainBorder = court.chain === 'gnosis' ? 'border-blue-400/20' : court.chain === 'arbitrum' ? 'border-orange-400/20' : 'border-violet-400/20';
+                const chainMark = court.chain === 'gnosis' ? 'mark-g' : court.chain === 'arbitrum' ? 'mark-a' : 'mark-e';
+                const fillColor = court.chain === 'gnosis' ? 'var(--c-gnosis)' : court.chain === 'arbitrum' ? 'var(--c-arb)' : 'var(--c-eth)';
 
                 return `
-                    <div class="court-row flex items-center gap-3 py-2 px-2 rounded cursor-pointer border-l-2 ${chainBorder}" onclick="openCourtPanel('${court.chain}', ${court.id}, '${court.name}')">
+                    <div class="court-row flex items-center gap-3 py-2.5 px-2 cursor-pointer border-b" style="border-color: var(--rule)" onclick="openCourtPanel('${court.chain}', ${court.id}, '${court.name}')">
+                        <span class="mark ${chainMark}" title="${court.chain}"></span>
                         <div class="flex-1 min-w-0">
                             <div class="flex items-center gap-2">
-                                <span class="text-sm truncate">${court.name}</span>
-                                ${court.chain === 'arbitrum' ? '<span class="text-[8px] text-orange-400">V2</span>' : ''}
-                                ${isActive ? '<span class="w-1.5 h-1.5 rounded-full bg-green-400 active-indicator"></span>' : ''}
+                                <span class="text-[13px] truncate">${court.name}</span>
+                                ${court.chain === 'arbitrum' ? '<span class="text-[9px] num" style="color: var(--c-arb)">V2</span>' : ''}
+                                ${isActive ? '<span class="w-1.5 h-1.5 active-indicator" style="background: var(--c-live)"></span>' : ''}
                             </div>
-                            <div class="flex items-center gap-2 mt-1">
-                                <div class="flex-1 h-1 bg-white/5 rounded-full overflow-hidden">
-                                    <div class="h-full ${chainColor} rounded-full transition-all" style="width: ${pct}%"></div>
+                            <div class="flex items-center gap-3 mt-1.5">
+                                <div class="track flex-1">
+                                    <div class="track-fill" style="width: ${pct}%; background: ${fillColor}"></div>
                                 </div>
-                                <span class="text-[10px] text-gray-500 w-12 text-right">${activity} <span class="text-gray-600">(${pctTotal}%)</span></span>
+                                <span class="text-[10px] num" style="color: var(--text-muted)">${activity} <span style="color: var(--text-dim)">· ${pctTotal}%</span></span>
                             </div>
                         </div>
-                        <div class="text-[10px] text-gray-600">${court.jurors}j</div>
+                        <div class="text-[10px] num" style="color: var(--text-dim)">${court.jurors} <span style="font-family: 'Geist'; font-variant-numeric: normal;">jurors</span></div>
                     </div>
                 `;
             }).join('');
@@ -714,29 +957,32 @@
             container.innerHTML = displayApps.length > 0 ? displayApps.map(app => {
                 const activity = getAppActivity(app);
                 const pct = totalDisputes > 0 ? ((activity / totalDisputes) * 100).toFixed(1) : 0;
-                const chainDot = app.chain === 'gnosis' ? 'bg-blue-400' : app.chain === 'arbitrum' ? 'bg-orange-400' : 'bg-violet-400';
-                const chainName = app.chain === 'gnosis' ? 'Gnosis' : app.chain === 'arbitrum' ? 'Arbitrum' : 'Ethereum';
+                const chainMark = app.chain === 'gnosis' ? 'mark-g' : app.chain === 'arbitrum' ? 'mark-a' : 'mark-e';
+                const chainName = app.chain === 'gnosis' ? 'Gnosis' : app.chain === 'arbitrum' ? 'Arbitrum · V2' : 'Ethereum';
                 const hasRecent = app.last30d > 0;
 
                 return `
-                    <a href="${app.url}" target="_blank" class="glass-bright rounded-lg p-3 hover:bg-white/5 transition block">
-                        <div class="flex items-center gap-2 mb-1">
-                            <span>${app.icon}</span>
-                            <span class="text-xs font-medium truncate">${app.name}</span>
-                            ${hasRecent ? '<span class="w-1.5 h-1.5 rounded-full bg-green-400"></span>' : ''}
+                    <a href="${app.url}" target="_blank" class="block p-4 border-r border-b" style="border-color: var(--rule); transition: background 180ms ease;" onmouseover="this.style.background='var(--surface)'" onmouseout="this.style.background='transparent'">
+                        <div class="flex items-start justify-between gap-3">
+                            <div class="min-w-0 flex-1">
+                                <div class="flex items-center gap-2">
+                                    <span class="text-[13px] font-medium truncate">${app.name}</span>
+                                    ${hasRecent ? '<span class="w-1.5 h-1.5 active-indicator" style="background: var(--c-live)"></span>' : ''}
+                                </div>
+                                <div class="text-[11px] mt-1 truncate" style="color: var(--text-dim)">${app.desc}</div>
+                            </div>
+                            <div class="text-right flex-shrink-0">
+                                <div class="display-small text-xl num">${activity}</div>
+                                <div class="text-[10px] num" style="color: var(--text-dim)">${pct}%</div>
+                            </div>
                         </div>
-                        <div class="text-[10px] text-gray-500 mb-2 truncate">${app.desc}</div>
-                        <div class="flex items-center justify-between">
-                            <span class="text-xs">${activity} disputes</span>
-                            <span class="text-[10px] text-gray-500">${pct}%</span>
-                        </div>
-                        <div class="flex items-center gap-1 mt-1">
-                            <span class="w-1.5 h-1.5 rounded-full ${chainDot}"></span>
-                            <span class="text-[10px] text-gray-600">${chainName}</span>
+                        <div class="flex items-center gap-2 mt-3 text-[10px]" style="color: var(--text-muted)">
+                            <span class="mark ${chainMark}"></span>
+                            <span>${chainName}</span>
                         </div>
                     </a>
                 `;
-            }).join('') : '<div class="col-span-2 text-center text-gray-500 text-sm py-4">No activity in this period</div>';
+            }).join('') : '<div class="col-span-2 text-center py-8 border-r border-b" style="border-color: var(--rule); color: var(--text-dim)">No activity in this period</div>';
         }
 
         function renderRecentCases() {
@@ -744,24 +990,27 @@
             let cases = currentChain === 'all' ? recentCases : recentCases.filter(c => c.chain === currentChain);
 
             container.innerHTML = cases.slice(0, 4).map(c => {
-                const chainBg = c.chain === 'gnosis' ? 'bg-blue-500/10 text-blue-400' : c.chain === 'arbitrum' ? 'bg-orange-500/10 text-orange-400' : 'bg-violet-500/10 text-violet-400';
-                const chainLabel = c.chain === 'gnosis' ? 'GNO' : c.chain === 'arbitrum' ? 'ARB' : 'ETH';
-                const statusIcon = c.status === 'appeal' ? '⏳' : '✓';
-                const statusColor = c.status === 'appeal' ? 'text-yellow-400' : 'text-green-400';
+                const chainMark = c.chain === 'gnosis' ? 'mark-g' : c.chain === 'arbitrum' ? 'mark-a' : 'mark-e';
+                const chainLabel = c.chain === 'gnosis' ? 'Gnosis' : c.chain === 'arbitrum' ? 'Arbitrum' : 'Ethereum';
+                const statusWord = c.status === 'appeal' ? 'Appeal' : c.status === 'voting' ? 'Voting' : 'Executed';
+                const statusColor = c.status === 'appeal' ? 'oklch(78% 0.16 85)' : c.status === 'voting' ? 'var(--c-live)' : 'var(--text-muted)';
                 const chainId = c.chain === 'gnosis' ? '100' : c.chain === 'arbitrum' ? '42161' : '1';
                 const baseUrl = c.chain === 'arbitrum' ? 'https://v2.kleros.builders' : 'https://klerosboard.com';
                 const caseUrl = c.chain === 'arbitrum' ? `${baseUrl}/#/cases/${c.id}` : `${baseUrl}/${chainId}/cases/${c.id}`;
 
                 return `
-                    <a href="${caseUrl}" target="_blank" class="glass-bright rounded-lg p-3 hover:bg-white/5 transition block">
-                        <div class="flex items-center justify-between mb-1">
-                            <span class="text-xs font-mono text-gray-500">#${c.id}</span>
-                            <span class="text-[10px] px-1.5 py-0.5 rounded ${chainBg}">${chainLabel}</span>
+                    <a href="${caseUrl}" target="_blank" class="block p-4 border-r border-b" style="border-color: var(--rule); transition: background 180ms ease;" onmouseover="this.style.background='var(--surface)'" onmouseout="this.style.background='transparent'">
+                        <div class="flex items-center justify-between">
+                            <span class="mono text-[11px]" style="color: var(--text-dim)">№ ${c.id}</span>
+                            <span class="text-[10px] inline-flex items-center gap-1.5">
+                                <span class="mark ${chainMark}"></span>
+                                <span style="color: var(--text-muted)">${chainLabel}</span>
+                            </span>
                         </div>
-                        <div class="text-sm">${c.court}</div>
-                        <div class="flex items-center justify-between mt-1">
-                            <span class="text-[10px] text-gray-500">${c.app} • ${c.date}</span>
-                            <span class="${statusColor} text-xs">${statusIcon}</span>
+                        <div class="display-small text-base mt-3">${c.court}</div>
+                        <div class="flex items-center justify-between mt-3 text-[10px]" style="color: var(--text-dim)">
+                            <span>${c.app} · ${c.date}</span>
+                            <span class="uppercase tracking-wider" style="color: ${statusColor}; font-weight: 500; letter-spacing: 0.08em;">${statusWord}</span>
                         </div>
                     </a>
                 `;
@@ -778,62 +1027,60 @@
             const court = courtsData[chain].find(c => c.id === courtId);
             const isV2 = chain === 'arbitrum';
             const linkUrl = isV2 ? `https://v2.kleros.builders/#/courts/${courtId}` : `https://klerosboard.com/${chainId}/courts/${courtId}`;
-            const linkBg = isV2 ? 'bg-orange-500/20 text-orange-400 hover:bg-orange-500/30' : 'bg-violet-500/20 text-violet-400 hover:bg-violet-500/30';
-            const linkText = isV2 ? 'View on V2 Dashboard →' : 'View on Klerosboard →';
+            const linkText = isV2 ? 'View on V2 dashboard →' : 'View on Klerosboard →';
 
+            const chainColor = isV2 ? 'var(--c-arb)' : chain === 'gnosis' ? 'var(--c-gnosis)' : 'var(--c-eth)';
             content.innerHTML = `
-                <div class="space-y-4">
-                    ${isV2 ? '<div class="text-[10px] text-orange-400 bg-orange-500/10 rounded px-2 py-1 text-center">Kleros V2 Court on Arbitrum</div>' : ''}
-                    <div class="grid grid-cols-2 gap-3">
-                        <div class="glass-bright rounded-lg p-3 text-center">
-                            <div class="text-xl font-semibold">${court.allTime}</div>
-                            <div class="text-[10px] text-gray-500">Total Disputes</div>
+                <div class="space-y-6">
+                    <div class="section-num" style="color: ${chainColor}">§ Court · ${chainName}${isV2 ? ' · V2' : ''}</div>
+                    <div class="grid grid-cols-2 border-l border-t" style="border-color: var(--rule)">
+                        <div class="p-3 border-r border-b" style="border-color: var(--rule)">
+                            <div class="eyebrow">Total</div>
+                            <div class="display-small text-2xl num mt-1">${court.allTime}</div>
                         </div>
-                        <div class="glass-bright rounded-lg p-3 text-center">
-                            <div class="text-xl font-semibold">${court.jurors}</div>
-                            <div class="text-[10px] text-gray-500">Active Jurors</div>
+                        <div class="p-3 border-r border-b" style="border-color: var(--rule)">
+                            <div class="eyebrow">Jurors</div>
+                            <div class="display-small text-2xl num mt-1">${court.jurors}</div>
                         </div>
-                        <div class="glass-bright rounded-lg p-3 text-center">
-                            <div class="text-xl font-semibold">${court.last30d}</div>
-                            <div class="text-[10px] text-gray-500">Last 30 Days</div>
+                        <div class="p-3 border-r border-b" style="border-color: var(--rule)">
+                            <div class="eyebrow">Last 30 days</div>
+                            <div class="display-small text-2xl num mt-1">${court.last30d}</div>
                         </div>
-                        <div class="glass-bright rounded-lg p-3 text-center">
-                            <div class="text-xl font-semibold">${court.lastYear}</div>
-                            <div class="text-[10px] text-gray-500">Last Year</div>
-                        </div>
-                    </div>
-
-                    <div>
-                        <h4 class="text-xs font-medium mb-2 text-gray-400">Activity Trend</h4>
-                        <div class="h-24 glass-bright rounded-lg p-2">
-                            <canvas id="court-trend-chart"></canvas>
+                        <div class="p-3 border-r border-b" style="border-color: var(--rule)">
+                            <div class="eyebrow">Last year</div>
+                            <div class="display-small text-2xl num mt-1">${court.lastYear}</div>
                         </div>
                     </div>
 
                     <div>
-                        <h4 class="text-xs font-medium mb-2 text-gray-400">Court Info</h4>
-                        <div class="space-y-2 text-xs">
-                            <div class="flex justify-between">
-                                <span class="text-gray-500">Chain</span>
-                                <span>${chainName}</span>
+                        <div class="eyebrow mb-2">Activity trend · last 12 months</div>
+                        <div class="paper p-3" style="height: 110px"><canvas id="court-trend-chart"></canvas></div>
+                    </div>
+
+                    <div>
+                        <div class="eyebrow mb-3">Court info</div>
+                        <dl class="text-[12px]">
+                            <div class="flex justify-between py-2 border-b" style="border-color: var(--rule)">
+                                <dt style="color: var(--text-dim)">Chain</dt>
+                                <dd>${chainName}</dd>
                             </div>
-                            <div class="flex justify-between">
-                                <span class="text-gray-500">Court ID</span>
-                                <span>${courtId}</span>
+                            <div class="flex justify-between py-2 border-b" style="border-color: var(--rule)">
+                                <dt style="color: var(--text-dim)">Court ID</dt>
+                                <dd class="mono">${courtId}</dd>
                             </div>
-                            <div class="flex justify-between">
-                                <span class="text-gray-500">Parent Court</span>
-                                <span>${court.parent !== null ? court.parent : 'None (Root)'}</span>
+                            <div class="flex justify-between py-2 border-b" style="border-color: var(--rule)">
+                                <dt style="color: var(--text-dim)">Parent court</dt>
+                                <dd class="mono">${court.parent !== null ? court.parent : '—'}</dd>
                             </div>
-                            ${isV2 ? `<div class="flex justify-between">
-                                <span class="text-gray-500">Version</span>
-                                <span class="text-orange-400">Kleros V2</span>
+                            ${isV2 ? `<div class="flex justify-between py-2 border-b" style="border-color: var(--rule)">
+                                <dt style="color: var(--text-dim)">Version</dt>
+                                <dd style="color: var(--c-arb)">Kleros V2</dd>
                             </div>` : ''}
-                        </div>
+                        </dl>
                     </div>
 
                     <a href="${linkUrl}" target="_blank"
-                       class="block w-full py-2 text-center text-xs ${linkBg} rounded-lg transition">
+                       class="inline-flex items-center gap-2 text-[12px] u-link">
                         ${linkText}
                     </a>
                 </div>
@@ -848,8 +1095,8 @@
                     const monthlyData = monthlyDataByCourt[chain];
                     const months = Object.keys(monthlyData).sort().slice(-12);
                     const values = months.map(m => monthlyData[m][courtId] || 0);
-                    const chartColor = chain === 'gnosis' ? '#60a5fa' : chain === 'arbitrum' ? '#f97316' : '#a78bfa';
-                    const chartBg = chain === 'gnosis' ? 'rgba(96,165,250,0.1)' : chain === 'arbitrum' ? 'rgba(249,115,22,0.1)' : 'rgba(167,139,250,0.1)';
+                    const chartColor = chain === 'gnosis' ? CHART.gnosis : chain === 'arbitrum' ? CHART.arb : CHART.eth;
+                    const chartBg = chain === 'gnosis' ? 'oklch(74% 0.14 228 / 0.12)' : chain === 'arbitrum' ? 'oklch(76% 0.14 62 / 0.12)' : 'oklch(70% 0.18 300 / 0.12)';
 
                     new Chart(ctx, {
                         type: 'line',
@@ -895,9 +1142,17 @@
                     plugins: {
                         legend: {
                             position: 'bottom',
-                            labels: { boxWidth: 8, padding: 8, font: { size: 9 }, color: '#9ca3af' }
+                            labels: { boxWidth: 6, boxHeight: 6, padding: 10, font: { size: 10, family: 'Geist' }, color: CHART.text, usePointStyle: false }
                         },
                         tooltip: {
+                            backgroundColor: 'oklch(18% 0.022 300)',
+                            borderColor: CHART.grid,
+                            borderWidth: 1,
+                            titleFont: { family: 'Geist', weight: 500, size: 11 },
+                            bodyFont: { family: 'Geist Mono', size: 10 },
+                            padding: 10,
+                            titleColor: CHART.accent,
+                            bodyColor: CHART.text,
                             callbacks: {
                                 afterTitle: (items) => {
                                     const total = items.reduce((sum, item) => sum + item.raw, 0);
@@ -907,8 +1162,8 @@
                         }
                     },
                     scales: {
-                        x: { stacked: true, grid: { display: false }, ticks: { color: '#6b7280', font: { size: 9 }, maxRotation: 45 } },
-                        y: { stacked: true, grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: '#6b7280', font: { size: 9 } } }
+                        x: { stacked: true, grid: { display: false }, border: { color: CHART.grid }, ticks: { color: CHART.textDim, font: { size: 10, family: 'Geist Mono' }, maxRotation: 0 } },
+                        y: { stacked: true, grid: { color: CHART.grid, drawTicks: false }, border: { display: false }, ticks: { color: CHART.textDim, font: { size: 10, family: 'Geist Mono' }, padding: 8 } }
                     }
                 }
             });
@@ -1007,14 +1262,16 @@
                 const isGnosis = courtName.includes('(G)');
                 const isArbitrum = courtName.includes('(A)');
                 const baseName = courtName.replace(' (G)', '').replace(' (E)', '').replace(' (A)', '');
-                const defaultColor = isGnosis ? '#60a5fa' : isArbitrum ? '#f97316' : '#a78bfa';
+                const defaultColor = isGnosis ? CHART.gnosis : isArbitrum ? CHART.arb : CHART.eth;
                 return {
                     type: 'bar',
                     label: courtName,
                     data: labels.map(l => displayData[l]?.[courtName] || 0),
                     backgroundColor: courtColors[baseName] || defaultColor,
-                    borderRadius: 2,
-                    barPercentage: 0.8,
+                    borderRadius: 0,
+                    borderSkipped: false,
+                    barPercentage: 0.78,
+                    categoryPercentage: 0.88,
                     stack: 'courts'
                 };
             });
@@ -1030,14 +1287,16 @@
                 type: 'line',
                 label: 'Total',
                 data: totals,
-                borderColor: '#c4b5fd',
+                borderColor: CHART.accent,
                 backgroundColor: 'transparent',
-                borderWidth: 2,
-                pointRadius: 3,
-                pointBackgroundColor: '#c4b5fd',
-                tension: 0.3,
+                borderWidth: 1.5,
+                pointRadius: 2.5,
+                pointBackgroundColor: CHART.accent,
+                pointBorderColor: 'oklch(14% 0.015 300)',
+                pointBorderWidth: 1.5,
+                tension: 0.35,
                 yAxisID: 'y',
-                order: 0 // Draw on top
+                order: 0
             });
 
             // Format labels
@@ -1056,14 +1315,17 @@
             const ctx = document.getElementById('distributionChart');
             distributionChart = new Chart(ctx, {
                 type: 'doughnut',
-                data: { labels: [], datasets: [{ data: [], backgroundColor: [] }] },
+                data: { labels: [], datasets: [{ data: [], backgroundColor: [], borderColor: 'oklch(14% 0.015 300)', borderWidth: 2 }] },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    cutout: '65%',
+                    cutout: '72%',
                     plugins: {
                         legend: { display: false },
                         tooltip: {
+                            backgroundColor: 'oklch(18% 0.022 300)',
+                            borderColor: CHART.grid, borderWidth: 1, padding: 10,
+                            titleColor: CHART.accent, bodyColor: CHART.text,
                             callbacks: {
                                 label: (context) => {
                                     const total = context.dataset.data.reduce((a, b) => a + b, 0);
@@ -1101,22 +1363,21 @@
             distributionChart.data.labels = courtsByActivity.map(c => c.name);
             distributionChart.data.datasets[0].data = courtsByActivity.map(c => c.value);
             distributionChart.data.datasets[0].backgroundColor = courtsByActivity.map(c => {
-                const defaultColor = c.chain === 'gnosis' ? '#60a5fa' : c.chain === 'arbitrum' ? '#f97316' : '#a78bfa';
+                const defaultColor = c.chain === 'gnosis' ? CHART.gnosis : c.chain === 'arbitrum' ? CHART.arb : CHART.eth;
                 return courtColors[c.name] || defaultColor;
             });
             distributionChart.update();
 
-            // Update legend
             const legendContainer = document.getElementById('distribution-legend');
             legendContainer.innerHTML = courtsByActivity.map(c => {
                 const pct = ((c.value / total) * 100).toFixed(1);
-                const defaultColor = c.chain === 'gnosis' ? '#60a5fa' : c.chain === 'arbitrum' ? '#f97316' : '#a78bfa';
+                const defaultColor = c.chain === 'gnosis' ? 'var(--c-gnosis)' : c.chain === 'arbitrum' ? 'var(--c-arb)' : 'var(--c-eth)';
                 const color = courtColors[c.name] || defaultColor;
                 return `
-                    <div class="flex items-center gap-2">
-                        <span class="w-2 h-2 rounded-full" style="background: ${color}"></span>
-                        <span class="truncate">${c.name}</span>
-                        <span class="text-gray-500 ml-auto">${pct}%</span>
+                    <div class="flex items-center gap-3 pb-2 border-b" style="border-color: var(--rule)">
+                        <span class="mark" style="background: ${color}"></span>
+                        <span class="truncate text-[12px]">${c.name}</span>
+                        <span class="num ml-auto" style="color: var(--text-dim)">${pct}%</span>
                     </div>
                 `;
             }).join('');
@@ -1139,9 +1400,9 @@
                 data: {
                     labels: yearlyData.map(d => d.year),
                     datasets: [
-                        { label: 'Gnosis', data: yearlyData.map(d => d.gnosis), backgroundColor: '#60a5fa', borderRadius: 4 },
-                        { label: 'Ethereum', data: yearlyData.map(d => d.mainnet), backgroundColor: '#a78bfa', borderRadius: 4 },
-                        { label: 'Arbitrum', data: yearlyData.map(d => d.arbitrum), backgroundColor: '#f97316', borderRadius: 4 }
+                        { label: 'Gnosis', data: yearlyData.map(d => d.gnosis), backgroundColor: CHART.gnosis, borderRadius: 0, borderSkipped: false },
+                        { label: 'Ethereum', data: yearlyData.map(d => d.mainnet), backgroundColor: CHART.eth, borderRadius: 0, borderSkipped: false },
+                        { label: 'Arbitrum', data: yearlyData.map(d => d.arbitrum), backgroundColor: CHART.arb, borderRadius: 0, borderSkipped: false }
                     ]
                 },
                 options: {
@@ -1150,6 +1411,9 @@
                     plugins: {
                         legend: { display: false },
                         tooltip: {
+                            backgroundColor: 'oklch(18% 0.022 300)',
+                            borderColor: CHART.grid, borderWidth: 1, padding: 10,
+                            titleColor: CHART.accent, bodyColor: CHART.text,
                             callbacks: {
                                 afterBody: (items) => {
                                     const year = items[0].label;
@@ -1157,14 +1421,14 @@
                                     const total = data.gnosis + data.mainnet + data.arbitrum;
                                     const gnosisPct = total > 0 ? ((data.gnosis / total) * 100).toFixed(0) : 0;
                                     const arbPct = total > 0 ? ((data.arbitrum / total) * 100).toFixed(0) : 0;
-                                    return `Gnosis: ${gnosisPct}% | V2: ${arbPct}%`;
+                                    return `Gnosis: ${gnosisPct}% · V2: ${arbPct}%`;
                                 }
                             }
                         }
                     },
                     scales: {
-                        x: { stacked: true, grid: { display: false }, ticks: { color: '#6b7280', font: { size: 9 } } },
-                        y: { stacked: true, grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: '#6b7280', font: { size: 9 } } }
+                        x: { stacked: true, grid: { display: false }, border: { color: CHART.grid }, ticks: { color: CHART.textDim, font: { size: 10, family: 'Geist Mono' } } },
+                        y: { stacked: true, grid: { color: CHART.grid, drawTicks: false }, border: { display: false }, ticks: { color: CHART.textDim, font: { size: 10, family: 'Geist Mono' }, padding: 8 } }
                     }
                 }
             });
@@ -1179,12 +1443,12 @@
             //   Oracle: Gnosis 18 (13) + Reality.eth arbitrable (93) = 106
             //   Other: General courts + escrow + misc = ~64
             const useCaseData = [
-                { label: 'List Curation', value: 1070, color: '#60a5fa' },
-                { label: 'Identity (PoH)', value: 1037, color: '#a78bfa' },
-                { label: 'Translation', value: 228, color: '#34d399' },
-                { label: 'Oracle / Prediction', value: 106, color: '#06b6d4' },
-                { label: 'Consumer Arbitration', value: 95, color: '#f97316' },
-                { label: 'Other', value: 64, color: '#6b7280' }
+                { label: 'List curation',        value: 1070, color: 'oklch(74% 0.14 228)' },
+                { label: 'Identity · PoH',       value: 1037, color: 'oklch(70% 0.18 300)' },
+                { label: 'Translation',          value: 228,  color: 'oklch(76% 0.12 195)' },
+                { label: 'Oracle / prediction',  value: 106,  color: 'oklch(78% 0.10 215)' },
+                { label: 'Consumer arbitration', value: 95,   color: 'oklch(76% 0.14 62)'  },
+                { label: 'Other',                value: 64,   color: 'oklch(52% 0.02 300)' }
             ];
 
             const ctx = document.getElementById('useCaseChart');
@@ -1195,8 +1459,9 @@
                     datasets: [{
                         data: useCaseData.map(d => d.value),
                         backgroundColor: useCaseData.map(d => d.color),
-                        borderRadius: 3,
-                        borderSkipped: false
+                        borderRadius: 0,
+                        borderSkipped: false,
+                        barPercentage: 0.78
                     }]
                 },
                 options: {
@@ -1206,14 +1471,15 @@
                     plugins: {
                         legend: { display: false },
                         tooltip: {
-                            callbacks: {
-                                label: (ctx) => ` ${ctx.raw} disputes`
-                            }
+                            backgroundColor: 'oklch(18% 0.022 300)',
+                            borderColor: CHART.grid, borderWidth: 1, padding: 10,
+                            titleColor: CHART.accent, bodyColor: CHART.text,
+                            callbacks: { label: (ctx) => `  ${ctx.raw} disputes` }
                         }
                     },
                     scales: {
-                        x: { grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: '#6b7280', font: { size: 9 } } },
-                        y: { grid: { display: false }, ticks: { color: '#9ca3af', font: { size: 9 } } }
+                        x: { grid: { color: CHART.grid, drawTicks: false }, border: { display: false }, ticks: { color: CHART.textDim, font: { size: 10, family: 'Geist Mono' }, padding: 4 } },
+                        y: { grid: { display: false }, border: { color: CHART.grid }, ticks: { color: CHART.text, font: { size: 11, family: 'Geist' } } }
                     }
                 }
             });
@@ -1232,16 +1498,28 @@
                     labels: v2Courts.map(c => c.name),
                     datasets: [{
                         data: v2Courts.map(c => c.allTime),
-                        backgroundColor: ['#f97316', '#fb923c', '#fdba74', '#fed7aa', '#ffedd5'],
+                        backgroundColor: [
+                            'oklch(76% 0.14 62)',
+                            'oklch(68% 0.16 52)',
+                            'oklch(82% 0.11 68)',
+                            'oklch(64% 0.13 45)',
+                            'oklch(86% 0.08 72)',
+                            'oklch(72% 0.10 55)'
+                        ],
+                        borderColor: 'oklch(17.5% 0.02 300)',
+                        borderWidth: 2
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    cutout: '60%',
+                    cutout: '68%',
                     plugins: {
                         legend: { display: false },
                         tooltip: {
+                            backgroundColor: 'oklch(18% 0.022 300)',
+                            borderColor: CHART.grid, borderWidth: 1, padding: 10,
+                            titleColor: CHART.arb, bodyColor: CHART.text,
                             callbacks: {
                                 label: (context) => {
                                     const total = context.dataset.data.reduce((a, b) => a + b, 0);
@@ -1273,17 +1551,26 @@
                     datasets: [{
                         label: 'Disputes',
                         data: v2MonthlyData.map(d => d.disputes),
-                        backgroundColor: '#f97316',
-                        borderRadius: 4
+                        backgroundColor: CHART.arb,
+                        borderRadius: 0,
+                        borderSkipped: false,
+                        barPercentage: 0.75
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: 'oklch(18% 0.022 300)',
+                            borderColor: CHART.grid, borderWidth: 1, padding: 10,
+                            titleColor: CHART.arb, bodyColor: CHART.text
+                        }
+                    },
                     scales: {
-                        x: { grid: { display: false }, ticks: { color: '#6b7280', font: { size: 8 }, maxRotation: 45 } },
-                        y: { grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: '#6b7280', font: { size: 8 } } }
+                        x: { grid: { display: false }, border: { color: CHART.grid }, ticks: { color: CHART.textDim, font: { size: 9, family: 'Geist Mono' }, maxRotation: 45 } },
+                        y: { grid: { color: CHART.grid, drawTicks: false }, border: { display: false }, ticks: { color: CHART.textDim, font: { size: 9, family: 'Geist Mono' }, padding: 6 } }
                     }
                 }
             });
@@ -1307,21 +1594,31 @@
                     datasets: [{
                         label: 'Cumulative',
                         data: v2MonthlyData.map(d => d.cumulative),
-                        borderColor: '#f97316',
-                        backgroundColor: 'rgba(249, 115, 22, 0.1)',
+                        borderColor: CHART.arb,
+                        backgroundColor: 'oklch(76% 0.14 62 / 0.12)',
                         fill: true,
-                        tension: 0.4,
-                        pointRadius: 3,
-                        pointBackgroundColor: '#f97316'
+                        tension: 0.35,
+                        pointRadius: 2,
+                        pointBackgroundColor: CHART.arb,
+                        pointBorderColor: 'oklch(17.5% 0.02 300)',
+                        pointBorderWidth: 1.5,
+                        borderWidth: 1.5
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: 'oklch(18% 0.022 300)',
+                            borderColor: CHART.grid, borderWidth: 1, padding: 10,
+                            titleColor: CHART.arb, bodyColor: CHART.text
+                        }
+                    },
                     scales: {
-                        x: { grid: { display: false }, ticks: { color: '#6b7280', font: { size: 8 }, maxRotation: 45 } },
-                        y: { grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: '#6b7280', font: { size: 8 } } }
+                        x: { grid: { display: false }, border: { color: CHART.grid }, ticks: { color: CHART.textDim, font: { size: 9, family: 'Geist Mono' }, maxRotation: 45 } },
+                        y: { grid: { color: CHART.grid, drawTicks: false }, border: { display: false }, ticks: { color: CHART.textDim, font: { size: 9, family: 'Geist Mono' }, padding: 6 } }
                     }
                 }
             });
@@ -1341,55 +1638,69 @@
                 const isActive = court.last30d > 0;
 
                 return `
-                    <div class="court-row flex items-center gap-3 py-2 px-2 rounded cursor-pointer border-l-2 border-orange-400/20" onclick="openCourtPanel('arbitrum', ${court.id}, '${court.name}')">
+                    <div class="court-row flex items-center gap-4 py-3 px-4 cursor-pointer border-b" style="border-color: var(--rule)" onclick="openCourtPanel('arbitrum', ${court.id}, '${court.name}')">
+                        <span class="mark mark-a"></span>
                         <div class="flex-1 min-w-0">
                             <div class="flex items-center gap-2">
-                                <span class="text-sm truncate">${court.name}</span>
-                                ${isActive ? '<span class="w-1.5 h-1.5 rounded-full bg-green-400 active-indicator"></span>' : ''}
+                                <span class="text-[13px] truncate">${court.name}</span>
+                                ${isActive ? '<span class="w-1.5 h-1.5 active-indicator" style="background: var(--c-live)"></span>' : ''}
                             </div>
-                            <div class="flex items-center gap-2 mt-1">
-                                <div class="flex-1 h-1 bg-white/5 rounded-full overflow-hidden">
-                                    <div class="h-full bg-orange-400 rounded-full transition-all" style="width: ${pct}%"></div>
+                            <div class="flex items-center gap-3 mt-1.5">
+                                <div class="track flex-1">
+                                    <div class="track-fill" style="width: ${pct}%; background: var(--c-arb)"></div>
                                 </div>
-                                <span class="text-[10px] text-gray-500 w-12 text-right">${court.allTime} <span class="text-gray-600">(${pctTotal}%)</span></span>
+                                <span class="text-[10px] num" style="color: var(--text-muted)">${court.allTime} <span style="color: var(--text-dim)">· ${pctTotal}%</span></span>
                             </div>
                         </div>
-                        <div class="text-[10px] text-gray-600">${court.jurors}j</div>
+                        <div class="text-[10px] num" style="color: var(--text-dim)">${court.jurors} <span style="font-family: 'Geist'; font-variant-numeric: normal;">jurors</span></div>
                     </div>
                 `;
             }).join('');
         }
 
         function renderV2Categories() {
-            // Consumer categories
             const consumerContainer = document.getElementById('v2-consumer-categories');
             if (consumerContainer) {
                 const totalConsumer = v2ConsumerCategories.reduce((sum, c) => sum + c.count, 0);
+                const maxConsumer = Math.max(...v2ConsumerCategories.map(c => c.count));
                 consumerContainer.innerHTML = v2ConsumerCategories.map(cat => {
                     const pct = ((cat.count / totalConsumer) * 100).toFixed(1);
+                    const barPct = (cat.count / maxConsumer) * 100;
                     return `
-                        <div class="glass-bright rounded-lg p-2 text-center hover:bg-white/5 transition">
-                            <div class="text-lg">${cat.icon}</div>
-                            <div class="text-xs font-medium mt-1">${cat.name}</div>
-                            <div class="text-lg font-semibold text-orange-400">${cat.count}</div>
-                            <div class="text-[9px] text-gray-500">${pct}%</div>
+                        <div class="p-4 border-r border-b" style="border-color: var(--rule)">
+                            <div class="flex items-baseline justify-between gap-2">
+                                <span class="text-[12px] truncate" style="color: var(--text)">${cat.name}</span>
+                                <span class="display-small text-xl num" style="color: var(--c-arb)">${cat.count}</span>
+                            </div>
+                            <div class="track mt-2">
+                                <div class="track-fill" style="width: ${barPct}%; background: var(--c-arb)"></div>
+                            </div>
+                            <div class="text-[10px] mt-1.5 num" style="color: var(--text-dim)">${pct}%</div>
                         </div>
                     `;
                 }).join('');
             }
 
-            // Curation categories
             const curationContainer = document.getElementById('v2-curation-categories');
             if (curationContainer) {
                 const totalCuration = v2CurationCategories.reduce((sum, c) => sum + c.count, 0);
+                const maxCuration = Math.max(...v2CurationCategories.map(c => c.count));
                 curationContainer.innerHTML = v2CurationCategories.map(cat => {
                     const pct = ((cat.count / totalCuration) * 100).toFixed(1);
+                    const barPct = (cat.count / maxCuration) * 100;
                     return `
-                        <div class="glass-bright rounded-lg p-2 text-center hover:bg-white/5 transition">
-                            <div class="text-lg">${cat.icon}</div>
-                            <div class="text-xs font-medium mt-1">${cat.name}</div>
-                            <div class="text-lg font-semibold text-orange-400">${cat.count}</div>
-                            <div class="text-[9px] text-gray-500">${pct}%</div>
+                        <div class="p-5 border-r border-b" style="border-color: var(--rule)">
+                            <div class="flex items-baseline justify-between gap-3">
+                                <div>
+                                    <div class="eyebrow">${cat.name}</div>
+                                    <div class="display-small text-3xl num mt-1 accent">${cat.count}</div>
+                                </div>
+                                <div class="text-right text-[11px] num" style="color: var(--text-dim)">${pct}%</div>
+                            </div>
+                            <div class="track mt-3">
+                                <div class="track-fill" style="width: ${barPct}%; background: var(--accent-ink)"></div>
+                            </div>
+                            <p class="text-[11px] mt-3" style="color: var(--text-muted)">${cat.desc}</p>
                         </div>
                     `;
                 }).join('');

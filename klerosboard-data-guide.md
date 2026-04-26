@@ -757,13 +757,13 @@ const query = `{
 | Active Courts | 25 | 19 | 44 |
 | Peak Year | 2021 (531 cases) | 2025 (~345 cases) | - |
 
-**Migration Trend:** Activity has significantly shifted from Ethereum to Gnosis over time:
-- 2020: 100% Ethereum
-- 2022: 63% Gnosis
-- 2024: 88% Gnosis
-- 2025: 94% Gnosis
+**Use-case eras:** The Kleros caseload has gone through three functional phases, each dominated by a different class of dispute:
 
-This migration is primarily due to lower gas fees on Gnosis Chain.
+1. **Identity era (Mainnet, 2021)** — Proof of Humanity v1 accounts for 1,012 of 1,675 mainnet disputes (60%). The 2021 PoH launch drove Kleros's largest single dispute spike (531 cases that year).
+2. **Curation era (Gnosis, 2023–present)** — the Curation Court alone handles 613 of 792 Gnosis disputes (77%). Curate lists back Omen, Seer, Reality.eth and the token registry; the court rarely falls below 20 disputes/month.
+3. **Consumer arbitration era (Arbitrum V2, 2025–present)** — the Consumer Disputes Court ("Corte de Disputas de Consumo y Vecindad") is 80 of 133 V2 cases (60%), driven by Lemon (fintech) and Argentine municipal ombudsmen. Court 32 "Defensores del Cliente" went from 4 → 15 disputes in April 2026 alone.
+
+Mainnet V1 is effectively frozen (last dispute ID 1674 on 2026-02-12). New dispute flow is split between Gnosis V1 (curation) and Arbitrum V2 (consumer) — two distinct product lines, not one "migrating" user base.
 
 ---
 
