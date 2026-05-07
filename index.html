@@ -613,22 +613,30 @@
                 { id: 2, name: "English Language", last30d: 0, last90d: 0, lastYear: 0, allTime: 0, jurors: 6, parent: 0 },
                 { id: 3, name: "Spanish-English", last30d: 0, last90d: 0, lastYear: 0, allTime: 8, jurors: 2, parent: 2 },
                 { id: 4, name: "French-English", last30d: 0, last90d: 0, lastYear: 0, allTime: 3, jurors: 1, parent: 2 },
+                { id: 10, name: "Turkish-English", last30d: 0, last90d: 0, lastYear: 0, allTime: 1, jurors: 0, parent: 2 },
                 { id: 11, name: "Chinese-English", last30d: 0, last90d: 0, lastYear: 0, allTime: 10, jurors: 1, parent: 2 },
                 { id: 12, name: "Development", last30d: 0, last90d: 0, lastYear: 0, allTime: 1, jurors: 9, parent: 0 },
                 { id: 13, name: "Solidity", last30d: 0, last90d: 0, lastYear: 1, allTime: 3, jurors: 2, parent: 12 },
                 { id: 14, name: "JavaScript", last30d: 0, last90d: 0, lastYear: 5, allTime: 13, jurors: 5, parent: 12 },
+                { id: 16, name: "Corte de Curación en Español", last30d: 0, last90d: 0, lastYear: 0, allTime: 1, jurors: 3, parent: 15 },
                 { id: 17, name: "Blockchain (ES)", last30d: 0, last90d: 0, lastYear: 0, allTime: 73, jurors: 17, parent: 15 },
                 { id: 18, name: "Humanity Court", last30d: 7, last90d: 10, lastYear: 16, allTime: 19, jurors: 32, parent: 0 },
             ],
             mainnet: [
-                { id: 0, name: "General Court", last30d: 0, last90d: 0, lastYear: 1, allTime: 55, jurors: 714, parent: null },
-                { id: 2, name: "Non-Technical", last30d: 0, last90d: 0, lastYear: 0, allTime: 363, jurors: 40, parent: 1 },
-                { id: 3, name: "Token Listing", last30d: 0, last90d: 0, lastYear: 0, allTime: 15, jurors: 5, parent: 2 },
-                { id: 4, name: "Technical", last30d: 1, last90d: 2, lastYear: 3, allTime: 33, jurors: 13, parent: 1 },
-                { id: 8, name: "Onboarding", last30d: 0, last90d: 0, lastYear: 0, allTime: 63, jurors: 231, parent: 0 },
-                { id: 9, name: "Curation", last30d: 0, last90d: 0, lastYear: 0, allTime: 105, jurors: 31, parent: 0 },
-                { id: 23, name: "Humanity Court", last30d: 0, last90d: 0, lastYear: 0, allTime: 1024, jurors: 114, parent: 0 },
-                { id: 24, name: "Oracle Court", last30d: 0, last90d: 0, lastYear: 0, allTime: 4, jurors: 11, parent: 0 },
+                { id: 0,  name: "General Court",        last30d: 0, last90d: 0, lastYear: 0, allTime: 55,   jurors: 714, parent: null },
+                { id: 1,  name: "Blockchain",           last30d: 0, last90d: 0, lastYear: 0, allTime: 1,    jurors: 0,   parent: null },
+                { id: 2,  name: "Non-Technical",        last30d: 0, last90d: 0, lastYear: 0, allTime: 363,  jurors: 40,  parent: 1    },
+                { id: 3,  name: "Token Listing",        last30d: 0, last90d: 0, lastYear: 0, allTime: 15,   jurors: 5,   parent: 2    },
+                { id: 4,  name: "Technical",            last30d: 0, last90d: 0, lastYear: 0, allTime: 33,   jurors: 13,  parent: 1    },
+                { id: 5,  name: "Marketing Services",   last30d: 0, last90d: 0, lastYear: 0, allTime: 1,    jurors: 12,  parent: 0    },
+                { id: 6,  name: "English Language",     last30d: 0, last90d: 0, lastYear: 0, allTime: 2,    jurors: 65,  parent: 0    },
+                { id: 8,  name: "Onboarding",           last30d: 0, last90d: 0, lastYear: 0, allTime: 63,   jurors: 231, parent: 0    },
+                { id: 9,  name: "Curation",             last30d: 0, last90d: 0, lastYear: 0, allTime: 105,  jurors: 32,  parent: 0    },
+                { id: 13, name: "Statistical Modeling", last30d: 0, last90d: 0, lastYear: 0, allTime: 3,    jurors: 14,  parent: 11   },
+                { id: 20, name: "Turkish-English",      last30d: 0, last90d: 0, lastYear: 0, allTime: 4,    jurors: 0,   parent: 0    },
+                { id: 21, name: "Chinese-English",      last30d: 0, last90d: 0, lastYear: 0, allTime: 2,    jurors: 8,   parent: 0    },
+                { id: 23, name: "Humanity Court",       last30d: 0, last90d: 0, lastYear: 0, allTime: 1024, jurors: 114, parent: 0    },
+                { id: 24, name: "Oracle Court",         last30d: 0, last90d: 0, lastYear: 0, allTime: 4,    jurors: 14,  parent: 0    },
             ],
             // Kleros V2 on Arbitrum - data from KlerosCoreNeo contract reads
             arbitrum: [
@@ -658,12 +666,13 @@
         // are placeholders for first-paint only. Mainnet apps stay hardcoded (V1 dormant).
         // allTime is NOT auto-derived: it's a Klerosboard-aligned snapshot, hand-bumped each refresh.
         const applicationsData = [
-            // ─── Mainnet (V1 Ethereum) — dormant since Feb 2026 ───
-            { name: "Proof of Humanity",  allTime: 1012, last30d: 0, last90d: 0, lastYear: 0, chain: "mainnet", icon: "👤", desc: "Sybil-resistant identity",   url: "https://proofofhumanity.id",    arbId: "0xc5e9ddeb" },
-            { name: "Tokens Registry",    allTime: 304,  last30d: 0, last90d: 0, lastYear: 0, chain: "mainnet", icon: "🪙", desc: "Curated token listings",     url: "https://tokens.kleros.io",      arbId: "0xebcf3bca" },
-            { name: "Linguo",             allTime: 39,   last30d: 0, last90d: 0, lastYear: 0, chain: "mainnet", icon: "🌐", desc: "Translation escrows",        url: "https://linguo.kleros.io",      arbId: "0x99a0f0e0" },
-            { name: "Escrow",             allTime: 21,   last30d: 0, last90d: 0, lastYear: 0, chain: "mainnet", icon: "🔒", desc: "Generic escrow service",     url: "https://escrow.kleros.io",      arbId: "0xe0e1bc8c" },
-            { name: "PoH v2",             allTime: 11,   last30d: 0, last90d: 0, lastYear: 3, chain: "mainnet", icon: "👤", desc: "PoH second version",         url: "https://proofofhumanity.id",    arbId: "0xbe983409" },
+            // ─── Mainnet (V1 Ethereum) — mostly dormant; PoH v2 still trickles ───
+            { name: "Proof of Humanity",  allTime: 1012, last30d: 0, last90d: 0, lastYear: 0, chain: "mainnet", icon: "👤", desc: "Sybil-resistant identity (V1)", url: "https://proofofhumanity.id",  arbId: "0xc5e9ddeb" },
+            { name: "Tokens Registry",    allTime: 304,  last30d: 0, last90d: 0, lastYear: 0, chain: "mainnet", icon: "🪙", desc: "Curated token listings",        url: "https://tokens.kleros.io",     arbId: "0xebcf3bca" },
+            { name: "Linguo",             allTime: 39,   last30d: 0, last90d: 0, lastYear: 0, chain: "mainnet", icon: "🌐", desc: "Translation escrows",           url: "https://linguo.kleros.io",     arbId: "0x99a0f0e0" },
+            { name: "Escrow",             allTime: 21,   last30d: 0, last90d: 0, lastYear: 0, chain: "mainnet", icon: "🔒", desc: "Generic escrow service",        url: "https://escrow.kleros.io",     arbId: "0xe0e1bc8c" },
+            { name: "PoH v2 (Mainnet)",   allTime: 20,   last30d: 0, last90d: 0, lastYear: 0, chain: "mainnet", icon: "🧍", desc: "PoH second version on Eth",     url: "https://proofofhumanity.id",   arbId: "0xbe983409" },
+            { name: "Misc Mainnet",       allTime: 6,    last30d: 0, last90d: 0, lastYear: 0, chain: "mainnet", icon: "🔗", desc: "Long tail of mainnet arbitrables", url: "",                          arbId: "0x__misc_mainnet__" },
             // ─── Gnosis V2 (xDai) — names verified via Blockscout's Kleros Curate metadata tags ───
             { name: "Address Tags Registry",        allTime: 150, last30d: 0, last90d: 0, lastYear: 0, chain: "gnosis", icon: "🏷️", desc: "Address-tag curation (Scout)",            url: "https://app.klerosscout.eth.limo", arbId: "0x66260c69" },
             { name: "Kleros Tokens Registry",       allTime: 203, last30d: 0, last90d: 0, lastYear: 0, chain: "gnosis", icon: "🪙", desc: "Token-listing curation v2.1",             url: "https://curate.kleros.io",         arbId: "0xee1502e2" },
@@ -776,6 +785,11 @@
                 "0x5aaf9e23": {"2025-06":5,"2025-07":23,"2025-08":2,"2025-09":3,"2025-10":12,"2025-12":10,"2026-01":8,"2026-02":2,"2026-03":6,"2026-04":5},                       // Seer Markets
                 "0x957a53a9": {"2025-07":1,"2025-08":1,"2025-10":2,"2026-01":1,"2026-02":9,"2026-04":1},                                                                          // Contract Domain Name Registry v2.0
                 "0xa4ac94c4": {"2025-06":1,"2025-07":1,"2025-09":1,"2025-11":3,"2026-02":2,"2026-04":5,"2026-05":3},                                                              // Proof of Humanity V2
+            },
+            mainnet: {
+                "0xbe983409": {"2025-05":1,"2025-08":2,"2025-09":1,"2025-10":2,"2025-11":1,"2025-12":1,"2026-02":1},  // PoH v2 (Eth) — 9 cases last 13mo
+                // 6 one-off arbitrables grouped under "Misc Mainnet" — sum of these 6 mapped to the catch-all entry below
+                "0x__misc_mainnet__": {"2025-07":1,"2025-09":1,"2025-10":2,"2026-01":1,"2026-02":1},                  // 6 cases across 6 arbitrables
             }
         };
 
@@ -824,22 +838,25 @@
             });
         }
 
-        // Sync apps: pull from arbitrable monthly (Gnosis) or court monthly (Arbitrum V2).
-        // Mainnet apps are dormant — last30d/90d are 0; lastYear stays hardcoded.
+        // Sync apps: derive last30d/90d/lastYear from monthly data.
+        // Gnosis apps → per-arbitrable monthly. Arbitrum V2 apps → per-court monthly
+        // (each V2 app cleanly maps to one court). Mainnet apps → per-arbitrable
+        // monthly (PoH v2 + Misc); the rest are truly dormant so stay 0.
         function syncAppsFromMonthly() {
             applicationsData.forEach(app => {
+                let m = null;
                 if (app.chain === 'gnosis' && app.arbId && monthlyDataByArbitrable.gnosis[app.arbId]) {
-                    const m = monthlyDataByArbitrable.gnosis[app.arbId];
-                    app.last30d  = sumMonthlyForPeriod(m, '30d');
-                    app.last90d  = sumMonthlyForPeriod(m, '90d');
-                    app.lastYear = sumMonthlyForPeriod(m, '1y');
+                    m = monthlyDataByArbitrable.gnosis[app.arbId];
+                } else if (app.chain === 'mainnet' && app.arbId && monthlyDataByArbitrable.mainnet[app.arbId]) {
+                    m = monthlyDataByArbitrable.mainnet[app.arbId];
                 } else if (app.chain === 'arbitrum' && app.courtId !== undefined) {
-                    const m = getCourtMonthly('arbitrum', app.courtId);
+                    m = getCourtMonthly('arbitrum', app.courtId);
+                }
+                if (m) {
                     app.last30d  = sumMonthlyForPeriod(m, '30d');
                     app.last90d  = sumMonthlyForPeriod(m, '90d');
                     app.lastYear = sumMonthlyForPeriod(m, '1y');
                 }
-                // Mainnet apps: keep hardcoded (V1 Eth dormant).
             });
         }
 
