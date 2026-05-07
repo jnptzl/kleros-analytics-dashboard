@@ -976,14 +976,9 @@
             ['90d', '12m', '2y', 'all'].forEach(r => {
                 document.getElementById(`range-${r}`).className = `px-2 py-1 rounded text-[10px] font-medium ${r === range ? 'btn-active' : 'btn-inactive'}`;
             });
-            // Update title based on range
-            const titles = {
-                '90d': 'Weekly Dispute Activity by Court',
-                '12m': 'Monthly Dispute Activity by Court',
-                '2y': 'Monthly Dispute Activity by Court',
-                'all': 'Monthly Dispute Activity by Court'
-            };
-            document.getElementById('timeline-title').textContent = titles[range];
+            // All views now use monthly granularity (we only have monthly data,
+            // so faking weekly bars was misleading).
+            document.getElementById('timeline-title').textContent = 'Monthly dispute activity, by court';
             updateTimelineChart();
         }
 
@@ -1293,7 +1288,7 @@
             const chains = currentChain === 'all' ? ['gnosis', 'mainnet', 'arbitrum'] : [currentChain];
 
             chains.forEach(chain => {
-                const data = monthlyDataByCourt[chain];
+                const data = monthlyDataByCourt[chain] || {};
                 Object.entries(data).forEach(([month, courts]) => {
                     if (!combinedMonthly[month]) combinedMonthly[month] = {};
                     Object.entries(courts).forEach(([courtId, count]) => {
@@ -1306,61 +1301,41 @@
                 });
             });
 
-            // Filter by time range
-            let periods = Object.keys(combinedMonthly).sort();
+            // Build a CONTINUOUS month range that ALWAYS ends at the current calendar month.
+            // This prevents the latest period from disappearing when the selected chain has
+            // no data for the current month, and removes the fake "weekly = monthly/4" trick
+            // that was used for 90d. 90d now shows the last 4 months of monthly bars.
             const now = new Date();
+            const monthsBackByRange = { '90d': 3, '12m': 11, '2y': 23 };
+            let periods = [];
 
-            if (timeRange === '90d') {
-                // For 90d, we'll group by week
-                const cutoff = new Date();
-                cutoff.setDate(cutoff.getDate() - 90);
-                periods = periods.filter(m => {
-                    const [year, month] = m.split('-').map(Number);
-                    const monthDate = new Date(year, month - 1, 15);
-                    return monthDate >= cutoff;
-                });
-            } else if (timeRange === '12m') {
-                const cutoff = new Date();
-                cutoff.setMonth(cutoff.getMonth() - 12);
-                const cutoffStr = `${cutoff.getFullYear()}-${String(cutoff.getMonth()+1).padStart(2, '0')}`;
-                periods = periods.filter(m => m >= cutoffStr);
-            } else if (timeRange === '2y') {
-                const cutoff = new Date();
-                cutoff.setFullYear(cutoff.getFullYear() - 2);
-                const cutoffStr = `${cutoff.getFullYear()}-${String(cutoff.getMonth()+1).padStart(2, '0')}`;
-                periods = periods.filter(m => m >= cutoffStr);
-            }
-
-            // For 90d view, convert monthly data to approximate weekly data
-            let displayData = {};
-            let labels = [];
-
-            if (timeRange === '90d') {
-                // Generate last 13 weeks
-                const weeks = [];
-                for (let i = 12; i >= 0; i--) {
-                    const weekStart = new Date();
-                    weekStart.setDate(weekStart.getDate() - (i * 7));
-                    const weekLabel = `W${String(weekStart.getMonth()+1).padStart(2,'0')}/${String(weekStart.getDate()).padStart(2,'0')}`;
-                    weeks.push({ label: weekLabel, month: `${weekStart.getFullYear()}-${String(weekStart.getMonth()+1).padStart(2, '0')}` });
+            if (timeRange === 'all') {
+                // For 'all', start at the earliest month present in the dataset
+                // and fill forward to current month (zero-fill any gaps).
+                const existing = Object.keys(combinedMonthly).sort();
+                if (existing.length === 0) {
+                    periods = [`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2, '0')}`];
+                } else {
+                    const [sy, sm] = existing[0].split('-').map(Number);
+                    let cur = new Date(sy, sm - 1, 1);
+                    const end = new Date(now.getFullYear(), now.getMonth(), 1);
+                    while (cur <= end) {
+                        periods.push(`${cur.getFullYear()}-${String(cur.getMonth()+1).padStart(2, '0')}`);
+                        cur.setMonth(cur.getMonth() + 1);
+                    }
                 }
-
-                // Distribute monthly data across weeks (approximate)
-                weeks.forEach(w => {
-                    displayData[w.label] = {};
-                    const monthData = combinedMonthly[w.month] || {};
-                    Object.entries(monthData).forEach(([court, count]) => {
-                        // Approximate weekly = monthly / 4
-                        displayData[w.label][court] = Math.round(count / 4);
-                    });
-                });
-                labels = weeks.map(w => w.label);
             } else {
-                periods.forEach(m => {
-                    displayData[m] = combinedMonthly[m];
-                });
-                labels = periods;
+                const monthsBack = monthsBackByRange[timeRange];
+                for (let i = monthsBack; i >= 0; i--) {
+                    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+                    periods.push(`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2, '0')}`);
+                }
             }
+
+            // displayData: every period gets an entry (empty object → zero-height bar).
+            const displayData = {};
+            periods.forEach(p => { displayData[p] = combinedMonthly[p] || {}; });
+            const labels = periods;
 
             // Get all court names and sort by total
             const courtTotals = {};
