@@ -53,16 +53,32 @@ php -S localhost:8000
 
 ## Deployment
 
-The site is deployed on Netlify. To deploy your own instance:
+The site is deployed on Netlify **via the CLI, not a GitHub webhook.**
+⚠️ **`git push` alone does NOT update the live site.** Always run both:
 
 ```bash
-# Install Netlify CLI
-npm install -g netlify-cli
-
-# Login and deploy
-netlify login
-netlify deploy --prod
+git add index.html && git commit -m "..." && git push origin main   # version control
+netlify deploy --prod --dir=.                                        # what actually goes live
 ```
+
+First-time setup: `npm install -g netlify-cli && netlify login`.
+
+## Monthly Refresh
+
+The dashboard is hand-curated and updated monthly. Workflow:
+
+1. **Pull the month's data** with the reusable tool (lives in the sibling video project):
+   ```bash
+   python3 "../../kleros marketing tasks/video-generation/artisanal-dashboard-video/tools/refresh.py" --month YYYY-MM
+   ```
+   It does one wide `eth_getLogs` per chain, buckets by month, auto-resolves Gnosis arbitrable contract names, and prints every value keyed to where it goes. It also prints the Klerosboard V1 lookups + V2 MCP calls it can't do over pure RPC.
+2. **Append** the new month to `monthlyDataByCourt` (per chain) and `monthlyDataByArbitrable` in `index.html`.
+3. **Reconcile the summary figures** — these all silently drift from `monthlyDataByCourt` unless re-derived each cycle:
+   - `yearlyData` current-year row = sum of that year's monthly entries (verify `Σ yearlyData ≈ hero total ± 1`)
+   - hero `metric-*`, per-chain ledger, `v2Stats`, `applicationsData[].allTime`, `courtsData[].allTime`, `v2*Categories`, `recentCases`, use-case chart
+   - cross-panel gates: apps-Arbitrum total **==** V2 total; consumer categories sum **==** the "§10 …N cases" header; timeline All-view Total line **==** stacked bars for the latest month
+4. **Bump 3 date stamps:** the `// YTD through ...` comment in `yearlyData`, the hero attribution "last refresh", and the footer colophon "last refresh".
+5. **Deploy** (the two-step flow above), then verify the live `timelineChart` / `yearlyChart` / `metric-*` — don't trust the push.
 
 ## Data Extraction Guide
 
@@ -99,13 +115,14 @@ const { data } = await res.json();
 **V1 (Eth + Gnosis) — fast-path, no pagination:**
 The latest `DisputeCreation` log's `topics[1]` is the zero-indexed dispute ID, so `total = parseInt(topics[1], 16) + 1`. Pull from Blockscout (Eth) or `rpc.gnosischain.com` (Gnosis). Topic0: `0x141dfc18aa6a56fc816f44f0e9e2f1ebc92b15ab167770e17db5b084c10ed995`.
 
-## Statistics (April 2026)
+## Statistics (May 2026 · last refresh 29 May)
 
 | Metric | Ethereum (V1) | Gnosis (V1) | Arbitrum (V2) | Total |
 |--------|---------------|-------------|---------------|-------|
-| Total Disputes | 1,675 | 792 | 133 | **2,600** |
-| Last 30d | — | 38 | 11 | +49 |
-| Status | dormant (last case Feb 2026) | active | growing | — |
+| Total Disputes | 1,675 | 831 | 140 | **2,646** |
+| Rolling 30d | 0 | ~32 | ~6 | +38 |
+| Last 12 months | — | — | — | +461 |
+| Status | dormant (last case Feb 2026) | active (PoH challenge wave) | growing (Junín consumer cases) | — |
 
 ## Related Resources
 
