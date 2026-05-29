@@ -1345,10 +1345,22 @@
                     courtTotals[court] = (courtTotals[court] || 0) + count;
                 });
             });
-            const topCourts = Object.entries(courtTotals)
-                .sort((a, b) => b[1] - a[1])
-                .slice(0, 8)
-                .map(([name]) => name);
+            // Top-N by volume in the visible window, but ALWAYS include any
+            // Arbitrum-V2 court that has cases in the window (V2 totals are small
+            // versus V1 historical, so a pure top-N rolloff hides the V2 story
+            // — e.g. on "All", Defensores and Humanity (G) get pushed out by
+            // old Ethereum courts even when they're driving the current month).
+            const sorted = Object.entries(courtTotals).sort((a, b) => b[1] - a[1]);
+            const topN = 12;
+            const featured = new Set(
+                sorted
+                    .filter(([name, count]) => count > 0 && (name.includes('(A)') || name.includes('Humanity Court (G)')))
+                    .map(([name]) => name)
+            );
+            const topCourts = [
+                ...sorted.slice(0, topN).map(([name]) => name),
+                ...Array.from(featured)
+            ].filter((v, i, arr) => arr.indexOf(v) === i);  // dedupe
 
             // Build bar datasets for courts
             const datasets = topCourts.map(courtName => {
