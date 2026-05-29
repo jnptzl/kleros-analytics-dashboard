@@ -228,8 +228,8 @@
                     <h1 class="display text-[56px] md:text-[88px] leading-none">
                         Kleros <span style="color: var(--accent-ink); font-style: italic; font-variation-settings: 'opsz' 144, 'SOFT' 100, 'WONK' 1;">Analytics</span>
                     </h1>
-                    <p class="mt-3 text-sm max-w-xl" style="color: var(--text-muted)">A standing record of decentralized arbitration — courts, jurors, disputes — updated monthly from on-chain sources across V1 and V2.</p>
-                    <p class="mt-2 text-[11px] max-w-xl" style="color: var(--text-dim)">Hand-curated and vibecoded by <a href="https://app.ens.domains/0xjean.eth" target="_blank" class="u-link" style="color: var(--text-muted)">0xjean.eth</a> — manually, artisanally updated · <span class="num" style="color: var(--text-muted)">last refresh 29 May 2026</span>. Spot an error? <a href="https://t.me/0xjean" target="_blank" class="u-link" style="color: var(--text-muted)">DM on Telegram</a>. For the live state, cross-check on <a href="https://klerosboard.com/100" target="_blank" class="u-link" style="color: var(--text-muted)">Klerosboard</a> (V1) or <a href="https://v2.kleros.builders" target="_blank" class="u-link" style="color: var(--text-muted)">v2.kleros.builders</a> (V2).</p>
+                    <p class="mt-3 text-sm max-w-xl" style="color: var(--text-muted)">A standing record of decentralized arbitration — courts, jurors, disputes — updated weekly from on-chain sources across V1 and V2.</p>
+                    <p class="mt-2 text-[11px] max-w-xl" style="color: var(--text-dim)">Hand-curated and vibecoded by <a href="https://app.ens.domains/0xjean.eth" target="_blank" class="u-link" style="color: var(--text-muted)">0xjean.eth</a> — manually, artisanally updated · <span class="num" style="color: var(--text-muted)">last refresh <span id="hero-refresh">29 May 2026</span></span>. Spot an error? <a href="https://t.me/0xjean" target="_blank" class="u-link" style="color: var(--text-muted)">DM on Telegram</a>. For the live state, cross-check on <a href="https://klerosboard.com/100" target="_blank" class="u-link" style="color: var(--text-muted)">Klerosboard</a> (V1) or <a href="https://v2.kleros.builders" target="_blank" class="u-link" style="color: var(--text-muted)">v2.kleros.builders</a> (V2).</p>
                 </div>
                 <div class="flex items-center gap-0 border" style="border-color: var(--rule)">
                     <button onclick="setChain('all')" id="btn-all" class="px-3 py-2 text-[11px] font-medium border-r btn-active" style="border-color: var(--rule)">All</button>
@@ -581,7 +581,7 @@
             <div class="flex flex-col gap-1.5 max-w-2xl">
                 <div class="flex items-center gap-3">
                     <span class="eyebrow" style="color: var(--text-muted)">Colophon</span>
-                    <span>Data drawn from Kleros V1 + V2 onchain logs · last refresh 29 May MMXXVI.</span>
+                    <span>Data drawn from Kleros V1 + V2 onchain logs · last refresh <span id="footer-refresh">29 May 2026</span>.</span>
                 </div>
                 <div style="color: var(--text-dim)">
                     Hand-curated and vibecoded by <a href="https://app.ens.domains/0xjean.eth" target="_blank" class="u-link">0xjean.eth</a>. No cron, no subgraph — just a human and the chain. Errors? <a href="https://t.me/0xjean" target="_blank" class="u-link">DM on Telegram</a>. For canonical state, see <a href="https://klerosboard.com/100" target="_blank" class="u-link">Klerosboard</a> (V1) or <a href="https://v2.kleros.builders" target="_blank" class="u-link">v2.kleros.builders</a> (V2).
@@ -612,6 +612,10 @@
     <script>
         // ============ PRICE DATA ============
         const PRICES = { eth: 2070, pnk: 0.011 };
+
+        // Weekly cadence: bump THIS ONE line each refresh — it fills both the hero
+        // attribution and the footer colophon date stamps (see DOMContentLoaded).
+        const LAST_REFRESH = '29 May 2026';
 
         // ============ COURT DATA ============
         const courtsData = {
@@ -1909,6 +1913,7 @@
             syncCourtsFromMonthly();
             syncAppsFromMonthly();
             syncHeaderDelta();
+            ['hero-refresh', 'footer-refresh'].forEach(id => { const el = document.getElementById(id); if (el) el.textContent = LAST_REFRESH; });
 
             initTimelineChart();
             initDistributionChart();

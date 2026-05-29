@@ -63,22 +63,26 @@ netlify deploy --prod --dir=.                                        # what actu
 
 First-time setup: `npm install -g netlify-cli && netlify login`.
 
-## Monthly Refresh
+## Weekly Refresh
 
-The dashboard is hand-curated and updated monthly. Workflow:
+The dashboard is hand-curated and updated **weekly**. The data model is
+month-bucketed, so a weekly run just re-fetches the **current (partial) month**
+and overwrites that bucket — `rolling-30`, `last-12m`, totals, and the timeline
+all recompute from it. You only append a brand-new month bucket once a month.
 
-1. **Pull the month's data** with the reusable tool (lives in the sibling video project):
+1. **Pull the current month's data** with the reusable tool (lives in the sibling video project):
    ```bash
    python3 "../../kleros marketing tasks/video-generation/artisanal-dashboard-video/tools/refresh.py" --month YYYY-MM
    ```
    It does one wide `eth_getLogs` per chain, buckets by month, auto-resolves Gnosis arbitrable contract names, and prints every value keyed to where it goes. It also prints the Klerosboard V1 lookups + V2 MCP calls it can't do over pure RPC.
-2. **Append** the new month to `monthlyDataByCourt` (per chain) and `monthlyDataByArbitrable` in `index.html`.
+   - **Mid-week drift check** (no full re-pull): `get_court_stats(chainId=42161, courtId=N).totalDisputes` flags new V2 cases fast; confirm the headline count with the RPC max-dispute-id one-liner before bumping.
+2. **Overwrite** the current month in `monthlyDataByCourt` (per chain) and `monthlyDataByArbitrable` in `index.html` (append a new key only when the month rolls over).
 3. **Reconcile the summary figures** — these all silently drift from `monthlyDataByCourt` unless re-derived each cycle:
    - `yearlyData` current-year row = sum of that year's monthly entries (verify `Σ yearlyData ≈ hero total ± 1`)
    - hero `metric-*`, per-chain ledger, `v2Stats`, `applicationsData[].allTime`, `courtsData[].allTime`, `v2*Categories`, `recentCases`, use-case chart
    - cross-panel gates: apps-Arbitrum total **==** V2 total; consumer categories sum **==** the "§10 …N cases" header; timeline All-view Total line **==** stacked bars for the latest month
-4. **Bump 3 date stamps:** the `// YTD through ...` comment in `yearlyData`, the hero attribution "last refresh", and the footer colophon "last refresh".
-5. **Deploy** (the two-step flow above), then verify the live `timelineChart` / `yearlyChart` / `metric-*` — don't trust the push.
+4. **Bump the date:** one line — `const LAST_REFRESH = 'DD Mon YYYY'` near `PRICES`. It fills both the hero attribution and footer colophon stamps on load. (The `// YTD through ...` comment in `yearlyData` is a code comment, optional.)
+5. **Deploy** (the two-step flow above), then verify the live `timelineChart` / `yearlyChart` / `distributionChart` / `metric-*` and the cross-panel sums — don't trust the push.
 
 ## Data Extraction Guide
 
