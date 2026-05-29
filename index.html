@@ -688,6 +688,7 @@
             { name: "Automated Curation (V2)",       allTime: 21, last30d: 0, last90d: 0, lastYear: 0, chain: "arbitrum", icon: "🤖", desc: "Curated lists on V2",                      url: "https://v2.kleros.builders", arbId: "0xb5526d02-31", courtId: 31 },
             { name: "Non-Technical (V2)",            allTime: 8,  last30d: 0, last90d: 0, lastYear: 0, chain: "arbitrum", icon: "📄", desc: "General disputes V2",                      url: "https://v2.kleros.builders", arbId: "0xb5526d02-3",  courtId: 3  },
             { name: "Humanity (V2 Arbitrum)",        allTime: 3,  last30d: 0, last90d: 0, lastYear: 0, chain: "arbitrum", icon: "👥", desc: "Identity verification V2",                 url: "https://v2.kleros.builders", arbId: "0xb5526d02-24", courtId: 24 },
+            { name: "General Court (V2)",            allTime: 6,  last30d: 0, last90d: 0, lastYear: 0, chain: "arbitrum", icon: "⚖️", desc: "Root V2 court — disputes that don't fit a child", url: "https://v2.kleros.builders", arbId: "0xb5526d02-1",  courtId: 1  },
         ];
 
         // Current apps time period
@@ -737,7 +738,7 @@
             { name: "El Dorado", count: 1, icon: "🌴", desc: "El Dorado municipality" },
             { name: "Maldo", count: 1, icon: "📍", desc: "Maldo consumer office" },
             { name: "Insurance", count: 1, icon: "📋", desc: "Generic insurance" },
-            { name: "General", count: 1, icon: "📄", desc: "Uncategorized" }
+            { name: "Other", count: 7, icon: "📄", desc: "Uncategorized / pre-integrator consumer cases" }
         ];
 
         // V2 Automated Curation Category Breakdown (21 cases: 19-33, 49, 65, 67-68, 73-74, 87)
@@ -1489,15 +1490,18 @@
         }
 
         function initYearlyChart() {
+            // Each row is the sum of monthlyDataByCourt for that year. Grand total
+            // sums to 2,645 — the missing 1 vs the 2,646 hero is an Eth case before
+            // 2019-03 (when the monthly dict starts). Don't drift from monthly here.
             const yearlyData = [
                 { year: '2019', gnosis: 0,   mainnet: 149, arbitrum: 0   },
-                { year: '2020', gnosis: 0,   mainnet: 386, arbitrum: 0   },
-                { year: '2021', gnosis: 4,   mainnet: 531, arbitrum: 0   },
-                { year: '2022', gnosis: 143, mainnet: 380, arbitrum: 0   },
-                { year: '2023', gnosis: 150, mainnet: 176, arbitrum: 0   },
+                { year: '2020', gnosis: 0,   mainnet: 383, arbitrum: 0   },
+                { year: '2021', gnosis: 5,   mainnet: 511, arbitrum: 0   },
+                { year: '2022', gnosis: 62,  mainnet: 394, arbitrum: 0   },
+                { year: '2023', gnosis: 132, mainnet: 184, arbitrum: 0   },
                 { year: '2024', gnosis: 247, mainnet: 35,  arbitrum: 9   },
-                { year: '2025', gnosis: 251, mainnet: 13,  arbitrum: 109 },
-                { year: '2026', gnosis: 134, mainnet: 3,   arbitrum: 22  }  // YTD through May
+                { year: '2025', gnosis: 251, mainnet: 14,  arbitrum: 109 },
+                { year: '2026', gnosis: 134, mainnet: 4,   arbitrum: 22  }  // YTD through May
             ];
 
             const ctx = document.getElementById('yearlyChart');
