@@ -1049,6 +1049,14 @@
             const maxActivity = Math.max(...allCourts.map(c => getActivityValue(c)), 1);
             const totalActivity = allCourts.reduce((sum, c) => sum + getActivityValue(c), 0);
 
+            // Several V1 court names (Curation, Humanity Court, Non-Technical…) exist on
+            // BOTH Ethereum and Gnosis. In the all-chain view that reads as a duplicate
+            // bug since only the dot colour differs — suffix colliding names with the chain.
+            const nameCounts = {};
+            allCourts.forEach(c => { nameCounts[c.name] = (nameCounts[c.name] || 0) + 1; });
+            const chainTag = ch => ch === 'gnosis' ? 'Gnosis' : ch === 'arbitrum' ? 'Arbitrum' : 'Ethereum';
+            const disambiguate = c => (currentChain === 'all' && nameCounts[c.name] > 1) ? `${c.name} · ${chainTag(c.chain)}` : c.name;
+
             container.innerHTML = displayCourts.map(court => {
                 const activity = getActivityValue(court);
                 const pct = (activity / maxActivity) * 100;
@@ -1062,7 +1070,7 @@
                         <span class="mark ${chainMark}" title="${court.chain}"></span>
                         <div class="flex-1 min-w-0">
                             <div class="flex items-center gap-2">
-                                <span class="text-[13px] truncate">${court.name}</span>
+                                <span class="text-[13px] truncate">${disambiguate(court)}</span>
                                 ${court.chain === 'arbitrum' ? '<span class="text-[9px] num" style="color: var(--c-arb)">V2</span>' : ''}
                                 ${isActive ? '<span class="w-1.5 h-1.5 active-indicator" style="background: var(--c-live)"></span>' : ''}
                             </div>
@@ -1523,11 +1531,18 @@
             const slices = [...top];
             if (otherValue > 0) slices.push({ name: 'Other courts', value: otherValue, chain: 'other' });
 
+            // Same V1 cross-chain name collision as the courts list — disambiguate so two
+            // "Curation" slices don't read as a duplicate. Color already differs; this adds text.
+            const sliceNameCounts = {};
+            slices.forEach(c => { sliceNameCounts[c.name] = (sliceNameCounts[c.name] || 0) + 1; });
+            const sliceChainTag = ch => ch === 'gnosis' ? 'Gnosis' : ch === 'arbitrum' ? 'Arbitrum' : 'Ethereum';
+            const sliceLabel = c => (currentChain === 'all' && c.chain !== 'other' && sliceNameCounts[c.name] > 1) ? `${c.name} · ${sliceChainTag(c.chain)}` : c.name;
+
             const colorFor = (c) => c.chain === 'other'
                 ? 'oklch(42% 0.015 300)'
                 : (courtColors[c.name] || (c.chain === 'gnosis' ? CHART.gnosis : c.chain === 'arbitrum' ? CHART.arb : CHART.eth));
 
-            distributionChart.data.labels = slices.map(c => c.name);
+            distributionChart.data.labels = slices.map(sliceLabel);
             distributionChart.data.datasets[0].data = slices.map(c => c.value);
             distributionChart.data.datasets[0].backgroundColor = slices.map(colorFor);
             distributionChart.update();
@@ -1541,7 +1556,7 @@
                 return `
                     <div class="flex items-center gap-3 pb-2 border-b" style="border-color: var(--rule)">
                         <span class="mark" style="background: ${cssColor}"></span>
-                        <span class="truncate text-[12px]">${c.name}</span>
+                        <span class="truncate text-[12px]">${sliceLabel(c)}</span>
                         <span class="num ml-auto" style="color: var(--text-dim)">${pct}%</span>
                     </div>
                 `;
