@@ -119,9 +119,9 @@ The latest `DisputeCreation` log's `topics[1]` is the zero-indexed dispute ID, s
 
 | Metric | Ethereum (V1) | Gnosis (V1) | Arbitrum (V2) | Total |
 |--------|---------------|-------------|---------------|-------|
-| Total Disputes | 1,675 | 831 | 140 | **2,646** |
-| Rolling 30d | 0 | ~32 | ~6 | +38 |
-| Last 12 months | — | — | — | +461 |
+| Total Disputes | 1,675 | 831 | 141 | **2,647** |
+| Rolling 30d | 0 | ~32 | ~7 | +39 |
+| Last 12 months | — | — | — | +462 |
 | Status | dormant (last case Feb 2026) | active (PoH challenge wave) | growing (Junín consumer cases) | — |
 
 ## Related Resources
