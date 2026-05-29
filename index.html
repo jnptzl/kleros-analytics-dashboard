@@ -229,7 +229,7 @@
                         Kleros <span style="color: var(--accent-ink); font-style: italic; font-variation-settings: 'opsz' 144, 'SOFT' 100, 'WONK' 1;">Analytics</span>
                     </h1>
                     <p class="mt-3 text-sm max-w-xl" style="color: var(--text-muted)">A standing record of decentralized arbitration — courts, jurors, disputes — updated monthly from on-chain sources across V1 and V2.</p>
-                    <p class="mt-2 text-[11px] max-w-xl" style="color: var(--text-dim)">Hand-curated and vibecoded by <a href="https://app.ens.domains/0xjean.eth" target="_blank" class="u-link" style="color: var(--text-muted)">0xjean.eth</a> — manually, artisanally updated. Spot an error? <a href="https://t.me/0xjean" target="_blank" class="u-link" style="color: var(--text-muted)">DM on Telegram</a>. For the live state, cross-check on <a href="https://klerosboard.com/100" target="_blank" class="u-link" style="color: var(--text-muted)">Klerosboard</a> (V1) or <a href="https://v2.kleros.builders" target="_blank" class="u-link" style="color: var(--text-muted)">v2.kleros.builders</a> (V2).</p>
+                    <p class="mt-2 text-[11px] max-w-xl" style="color: var(--text-dim)">Hand-curated and vibecoded by <a href="https://app.ens.domains/0xjean.eth" target="_blank" class="u-link" style="color: var(--text-muted)">0xjean.eth</a> — manually, artisanally updated · <span class="num" style="color: var(--text-muted)">last refresh 29 May 2026</span>. Spot an error? <a href="https://t.me/0xjean" target="_blank" class="u-link" style="color: var(--text-muted)">DM on Telegram</a>. For the live state, cross-check on <a href="https://klerosboard.com/100" target="_blank" class="u-link" style="color: var(--text-muted)">Klerosboard</a> (V1) or <a href="https://v2.kleros.builders" target="_blank" class="u-link" style="color: var(--text-muted)">v2.kleros.builders</a> (V2).</p>
                 </div>
                 <div class="flex items-center gap-0 border" style="border-color: var(--rule)">
                     <button onclick="setChain('all')" id="btn-all" class="px-3 py-2 text-[11px] font-medium border-r btn-active" style="border-color: var(--rule)">All</button>
@@ -581,7 +581,7 @@
             <div class="flex flex-col gap-1.5 max-w-2xl">
                 <div class="flex items-center gap-3">
                     <span class="eyebrow" style="color: var(--text-muted)">Colophon</span>
-                    <span>Data drawn from Kleros V1 + V2 onchain logs, May MMXXVI.</span>
+                    <span>Data drawn from Kleros V1 + V2 onchain logs · last refresh 29 May MMXXVI.</span>
                 </div>
                 <div style="color: var(--text-dim)">
                     Hand-curated and vibecoded by <a href="https://app.ens.domains/0xjean.eth" target="_blank" class="u-link">0xjean.eth</a>. No cron, no subgraph — just a human and the chain. Errors? <a href="https://t.me/0xjean" target="_blank" class="u-link">DM on Telegram</a>. For canonical state, see <a href="https://klerosboard.com/100" target="_blank" class="u-link">Klerosboard</a> (V1) or <a href="https://v2.kleros.builders" target="_blank" class="u-link">v2.kleros.builders</a> (V2).
@@ -1432,15 +1432,37 @@
                 order: 0
             });
 
-            // Format labels
+            // Format labels.
+            //   90d → "2026-05" full format
+            //   12m / 2y / all → "26-05" (yy-mm). Tooltip uses this directly.
             const displayLabels = timeRange === '90d'
                 ? labels
-                : labels.map(m => m.slice(2)); // Show yy-mm for monthly
+                : labels.map(m => m.slice(2));
 
             timelineChart.data.labels = displayLabels;
             timelineChart.data.datasets = datasets;
             timelineChart.options.scales.x.stacked = timelineView === 'stacked';
             timelineChart.options.scales.y.stacked = timelineView === 'stacked';
+
+            // "All" view has ~80 bars — Chart.js's autoSkip ends up showing
+            // only ~6 yy-mm ticks scattered across years, making it hard to
+            // place any single bar on the calendar. Override the tick formatter
+            // to print a full "2019", "2020", ... year only at January and
+            // the very first bar; leave other ticks blank. Tooltips still show
+            // the full yy-mm via the underlying label data, so hover still works.
+            timelineChart.options.scales.x.ticks.autoSkip = timeRange !== 'all';
+            timelineChart.options.scales.x.ticks.callback = function (value, index) {
+                const label = this.getLabelForValue(value);  // "26-05" (or "2026-05" on 90d)
+                if (timeRange !== 'all') return label;
+                const parts = label.split('-');
+                const mo = parts[1];
+                if (mo === '01' || index === 0) {
+                    const yy = parts[0];
+                    return yy.length === 4 ? yy : `20${yy}`;
+                }
+                return '';
+            };
+
             timelineChart.update();
         }
 
@@ -1580,12 +1602,12 @@
             //   Oracle: Gnosis 18 (13) + Reality.eth arbitrable (93) = 106
             //   Other: General courts + escrow + misc = ~64
             const useCaseData = [
-                { label: 'List curation',        value: 1070, color: 'oklch(74% 0.14 228)' },
-                { label: 'Identity · PoH',       value: 1037, color: 'oklch(70% 0.18 300)' },
-                { label: 'Translation',          value: 228,  color: 'oklch(76% 0.12 195)' },
-                { label: 'Oracle / prediction',  value: 106,  color: 'oklch(78% 0.10 215)' },
-                { label: 'Consumer arbitration', value: 95,   color: 'oklch(76% 0.14 62)'  },
-                { label: 'Other',                value: 64,   color: 'oklch(52% 0.02 300)' }
+                { label: 'List curation',       value: 1070, color: 'oklch(74% 0.14 228)' },
+                { label: 'Identity · PoH',      value: 1037, color: 'oklch(70% 0.18 300)' },
+                { label: 'Translation',         value: 228,  color: 'oklch(76% 0.12 195)' },
+                { label: 'Oracle / prediction', value: 106,  color: 'oklch(78% 0.10 215)' },
+                { label: 'Consumer disputes',   value: 102,  color: 'oklch(76% 0.14 62)'  },
+                { label: 'Other',               value: 64,   color: 'oklch(52% 0.02 300)' }
             ];
 
             const ctx = document.getElementById('useCaseChart');
