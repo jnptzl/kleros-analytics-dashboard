@@ -229,6 +229,7 @@
                         Kleros <span style="color: var(--accent-ink); font-style: italic; font-variation-settings: 'opsz' 144, 'SOFT' 100, 'WONK' 1;">Analytics</span>
                     </h1>
                     <p class="mt-3 text-sm max-w-xl" style="color: var(--text-muted)">A standing record of decentralized arbitration — courts, jurors, disputes — updated monthly from on-chain sources across V1 and V2.</p>
+                    <p class="mt-2 text-[11px] max-w-xl" style="color: var(--text-dim)">Hand-curated and vibecoded by <a href="https://app.ens.domains/0xjean.eth" target="_blank" class="u-link" style="color: var(--text-muted)">0xjean.eth</a> — manually, artisanally updated. Spot an error? <a href="https://t.me/0xjean" target="_blank" class="u-link" style="color: var(--text-muted)">DM on Telegram</a>. For the live state, cross-check on <a href="https://klerosboard.com/100" target="_blank" class="u-link" style="color: var(--text-muted)">Klerosboard</a> (V1) or <a href="https://v2.kleros.builders" target="_blank" class="u-link" style="color: var(--text-muted)">v2.kleros.builders</a> (V2).</p>
                 </div>
                 <div class="flex items-center gap-0 border" style="border-color: var(--rule)">
                     <button onclick="setChain('all')" id="btn-all" class="px-3 py-2 text-[11px] font-medium border-r btn-active" style="border-color: var(--rule)">All</button>
@@ -576,15 +577,21 @@
         </section>
 
         <!-- Footer -->
-        <footer class="mt-20 pt-6 border-t flex flex-col md:flex-row md:items-center md:justify-between gap-3 text-[11px]" style="border-color: var(--rule); color: var(--text-dim)">
-            <div class="flex items-center gap-3">
-                <span class="eyebrow" style="color: var(--text-muted)">Colophon</span>
-                <span>Data drawn from Kleros V1 + V2 onchain logs, May MMXXVI.</span>
+        <footer class="mt-20 pt-6 border-t flex flex-col md:flex-row md:items-start md:justify-between gap-4 text-[11px]" style="border-color: var(--rule); color: var(--text-dim)">
+            <div class="flex flex-col gap-1.5 max-w-2xl">
+                <div class="flex items-center gap-3">
+                    <span class="eyebrow" style="color: var(--text-muted)">Colophon</span>
+                    <span>Data drawn from Kleros V1 + V2 onchain logs, May MMXXVI.</span>
+                </div>
+                <div style="color: var(--text-dim)">
+                    Hand-curated and vibecoded by <a href="https://app.ens.domains/0xjean.eth" target="_blank" class="u-link">0xjean.eth</a>. No cron, no subgraph — just a human and the chain. Errors? <a href="https://t.me/0xjean" target="_blank" class="u-link">DM on Telegram</a>. For canonical state, see <a href="https://klerosboard.com/100" target="_blank" class="u-link">Klerosboard</a> (V1) or <a href="https://v2.kleros.builders" target="_blank" class="u-link">v2.kleros.builders</a> (V2).
+                </div>
             </div>
-            <div class="flex items-center gap-5">
+            <div class="flex items-center gap-5 flex-shrink-0">
                 <a href="https://klerosboard.com/100" target="_blank" class="u-link">klerosboard.com</a>
                 <a href="https://v2.kleros.builders" target="_blank" class="u-link">v2.kleros.builders</a>
                 <a href="https://kleros.io" target="_blank" class="u-link">kleros.io</a>
+                <a href="https://t.me/0xjean" target="_blank" class="u-link">telegram</a>
             </div>
         </footer>
     </div>
