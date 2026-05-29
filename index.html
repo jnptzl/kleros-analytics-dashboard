@@ -247,7 +247,7 @@
                     <div class="num-display text-[120px] md:text-[180px]" id="metric-disputes">2,646</div>
                     <div class="pb-3 md:pb-5">
                         <div class="eyebrow">Total disputes</div>
-                        <div class="mt-1 text-sm num"><span class="delta-up" id="metric-disputes-recent">+41</span> <span style="color: var(--text-dim)">in the last 30 days</span></div>
+                        <div class="mt-1 text-sm num"><span class="delta-up" id="metric-disputes-recent">+41</span> <span style="color: var(--text-dim)">this month + last</span></div>
                     </div>
                 </div>
                 <div class="mt-3 flex items-center flex-wrap gap-x-5 gap-y-1 text-[12px] num" style="color: var(--text-muted)">
@@ -1105,8 +1105,8 @@
             container.innerHTML = cases.slice(0, 4).map(c => {
                 const chainMark = c.chain === 'gnosis' ? 'mark-g' : c.chain === 'arbitrum' ? 'mark-a' : 'mark-e';
                 const chainLabel = c.chain === 'gnosis' ? 'Gnosis' : c.chain === 'arbitrum' ? 'Arbitrum' : 'Ethereum';
-                const statusWord = c.status === 'appeal' ? 'Appeal' : c.status === 'voting' ? 'Voting' : 'Executed';
-                const statusColor = c.status === 'appeal' ? 'oklch(78% 0.16 85)' : c.status === 'voting' ? 'var(--c-live)' : 'var(--text-muted)';
+                const statusWord = c.status === 'appeal' ? 'Appeal' : c.status === 'voting' ? 'Voting' : c.status === 'evidence' ? 'Evidence' : 'Executed';
+                const statusColor = c.status === 'appeal' ? 'oklch(78% 0.16 85)' : c.status === 'voting' ? 'var(--c-live)' : c.status === 'evidence' ? 'var(--accent-ink)' : 'var(--text-muted)';
                 const chainId = c.chain === 'gnosis' ? '100' : c.chain === 'arbitrum' ? '42161' : '1';
                 const baseUrl = c.chain === 'arbitrum' ? 'https://v2.kleros.builders' : 'https://klerosboard.com';
                 const caseUrl = c.chain === 'arbitrum' ? `${baseUrl}/#/cases/${c.id}` : `${baseUrl}/${chainId}/cases/${c.id}`;
@@ -1478,13 +1478,14 @@
 
         function initYearlyChart() {
             const yearlyData = [
-                { year: '2019', gnosis: 0, mainnet: 149, arbitrum: 0 },
-                { year: '2020', gnosis: 0, mainnet: 386, arbitrum: 0 },
-                { year: '2021', gnosis: 4, mainnet: 531, arbitrum: 0 },
-                { year: '2022', gnosis: 143, mainnet: 380, arbitrum: 0 },
-                { year: '2023', gnosis: 150, mainnet: 176, arbitrum: 0 },
-                { year: '2024', gnosis: 247, mainnet: 35, arbitrum: 9 },
-                { year: '2025', gnosis: 163, mainnet: 15, arbitrum: 109 }
+                { year: '2019', gnosis: 0,   mainnet: 149, arbitrum: 0   },
+                { year: '2020', gnosis: 0,   mainnet: 386, arbitrum: 0   },
+                { year: '2021', gnosis: 4,   mainnet: 531, arbitrum: 0   },
+                { year: '2022', gnosis: 143, mainnet: 380, arbitrum: 0   },
+                { year: '2023', gnosis: 150, mainnet: 176, arbitrum: 0   },
+                { year: '2024', gnosis: 247, mainnet: 35,  arbitrum: 9   },
+                { year: '2025', gnosis: 251, mainnet: 13,  arbitrum: 109 },
+                { year: '2026', gnosis: 134, mainnet: 3,   arbitrum: 22  }  // YTD through May
             ];
 
             const ctx = document.getElementById('yearlyChart');
