@@ -247,7 +247,8 @@
                     <div class="num-display text-[120px] md:text-[180px]" id="metric-disputes">2,646</div>
                     <div class="pb-3 md:pb-5">
                         <div class="eyebrow">Total disputes</div>
-                        <div class="mt-1 text-sm num"><span class="delta-up" id="metric-disputes-recent">+41</span> <span style="color: var(--text-dim)">this month + last</span></div>
+                        <div class="mt-1 text-sm num"><span class="delta-up" id="metric-disputes-recent">+41</span> <span style="color: var(--text-dim)">in the last 30 days</span></div>
+                        <div class="mt-1 text-sm num"><span class="delta-up" id="metric-disputes-year">+524</span> <span style="color: var(--text-dim)">in the last 12 months</span></div>
                     </div>
                 </div>
                 <div class="mt-3 flex items-center flex-wrap gap-x-5 gap-y-1 text-[12px] num" style="color: var(--text-muted)">
@@ -511,7 +512,7 @@
                     <div class="section-num">§ 12 — Latest</div>
                     <h2 class="display-small text-xl md:text-2xl mt-1">Recent disputes</h2>
                 </div>
-                <a href="https://klerosboard.com" target="_blank" class="text-[11px] u-link">View all on Klerosboard</a>
+                <a href="https://klerosboard.com/100" target="_blank" class="text-[11px] u-link">View all on Klerosboard</a>
             </div>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 border-l border-t" style="border-color: var(--rule)" id="recent-cases">
                 <!-- Populated by JS -->
@@ -581,7 +582,7 @@
                 <span>Data drawn from Kleros V1 + V2 onchain logs, May MMXXVI.</span>
             </div>
             <div class="flex items-center gap-5">
-                <a href="https://klerosboard.com" target="_blank" class="u-link">klerosboard.com</a>
+                <a href="https://klerosboard.com/100" target="_blank" class="u-link">klerosboard.com</a>
                 <a href="https://v2.kleros.builders" target="_blank" class="u-link">v2.kleros.builders</a>
                 <a href="https://kleros.io" target="_blank" class="u-link">kleros.io</a>
             </div>
@@ -862,21 +863,40 @@
             });
         }
 
-        // Sync stats strip "last 30 days" delta to match the courts/apps "30d" filter
-        // (calendar: this month + last). Uses monthlyDataByCourt across all 3 chains.
+        // Hero deltas: TRUE rolling 30 days + last 12 calendar months.
+        // (These are independent of the courts/apps "30d" filter, which uses the
+        // calendar "this-month + last-month" shorthand — see sumMonthlyForPeriod.)
         function syncHeaderDelta() {
-            let total30d = 0;
-            ['gnosis', 'mainnet', 'arbitrum'].forEach(chain => {
-                const chainMonthly = monthlyDataByCourt[chain] || {};
-                Object.entries(chainMonthly).forEach(([month, courts]) => {
-                    Object.values(courts).forEach(c => { /* no-op — handled below */ });
+            const now = new Date();
+            const sumMonth = (key) => {
+                let s = 0;
+                ['gnosis', 'mainnet', 'arbitrum'].forEach(chain => {
+                    const data = monthlyDataByCourt[chain] || {};
+                    s += Object.values(data[key] || {}).reduce((a, b) => a + b, 0);
                 });
-                courtsData[chain].forEach(court => {
-                    total30d += court.last30d;  // already populated by syncCourtsFromMonthly
-                });
-            });
-            const el = document.getElementById('metric-disputes-recent');
-            if (el) el.textContent = `+${total30d}`;
+                return s;
+            };
+            const monthKey = (d) => `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}`;
+
+            // Rolling 30 days: current MTD + prorated prior month.
+            const curKey = monthKey(now);
+            const prevD = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 1, 1));
+            const prevKey = monthKey(prevD);
+            const prevDaysInMonth = new Date(prevD.getUTCFullYear(), prevD.getUTCMonth() + 1, 0).getUTCDate();
+            const daysFromPrev = Math.max(0, 30 - now.getUTCDate());
+            const rolling30 = sumMonth(curKey) + Math.round(sumMonth(prevKey) * daysFromPrev / prevDaysInMonth);
+
+            const el30 = document.getElementById('metric-disputes-recent');
+            if (el30) el30.textContent = `+${rolling30}`;
+
+            // Last 12 months: current MTD + previous 11 full calendar months.
+            let last12m = sumMonth(curKey);
+            for (let i = 1; i <= 11; i++) {
+                const d = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - i, 1));
+                last12m += sumMonth(monthKey(d));
+            }
+            const el12 = document.getElementById('metric-disputes-year');
+            if (el12) el12.textContent = `+${last12m}`;
         }
 
         // ============ STATE ============
