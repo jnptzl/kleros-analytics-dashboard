@@ -119,14 +119,14 @@ const { data } = await res.json();
 **V1 (Eth + Gnosis) — fast-path, no pagination:**
 The latest `DisputeCreation` log's `topics[1]` is the zero-indexed dispute ID, so `total = parseInt(topics[1], 16) + 1`. Pull from Blockscout (Eth) or `rpc.gnosischain.com` (Gnosis). Topic0: `0x141dfc18aa6a56fc816f44f0e9e2f1ebc92b15ab167770e17db5b084c10ed995`.
 
-## Statistics (May 2026 · last refresh 29 May)
+## Statistics (June 2026 · last refresh 15 Jun)
 
 | Metric | Ethereum (V1) | Gnosis (V1) | Arbitrum (V2) | Total |
 |--------|---------------|-------------|---------------|-------|
-| Total Disputes | 1,675 | 831 | 141 | **2,647** |
-| Rolling 30d | 0 | ~32 | ~7 | +39 |
-| Last 12 months | — | — | — | +462 |
-| Status | dormant (last case Feb 2026) | active (PoH challenge wave) | growing (Junín consumer cases) | — |
+| Total Disputes | 1,676 | 835 | 142 | **2,653** |
+| Rolling 30d | 1 | 12 | 2 | +15 |
+| Last 12 months | — | — | — | +428 |
+| Status | one-off governor case (Jun) | active (PoH + Curate appeals) | growing (Junín consumer cases) | — |
 
 ## Related Resources
 
