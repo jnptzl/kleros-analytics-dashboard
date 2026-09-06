@@ -103,6 +103,55 @@ load and, if it is ahead of the snapshot, show "+N since <LAST_REFRESH>" next to
 the hero. Everything else stays static. No RPC or Klerosboard calls from
 visitors' browsers.
 
+## What Klerosboard 3.0 teaches (investigated 6 Sep 2026)
+
+Repo `klerosboard/klerosboard` (MIT, Koki + kemuru), Vite + React 19 + MUI 9 + viem,
+deployed by Netlify from the repo (no CLI), five TypeScript Netlify functions under
+`netlify/functions/`, secrets as Netlify env vars. Findings that change this design:
+
+1. **The Klerosboard Gnosis subgraph is public again.**
+   `api.studio.thegraph.com/query/66145/klerosboard-gnosis/version/latest` answers
+   without a key: `klerosCounter` (disputes, active jurors, fees, PNK redistributed,
+   staked, court count), `courts{disputesNum activeJurors tokenStaked}` and the full
+   `disputes{id subcourtID startTime arbitrable period ruled}` list, 992 rows in 0.9 s.
+   → Gnosis needs no `eth_getLogs`, no `disputes()` batches, no Klerosboard scraping.
+   The mainnet twin lives only on the Graph gateway
+   (`ECENsJRf…`, needs a free API key). Until Jean creates one, mainnet court ids
+   come from Klerosboard's `stats-fees-by-dispute?chainId=1` (1,621 of 1,678 disputes
+   carry `courtId`, `arbitrableId`, `timestamp`; the 57 missing never paid fees) plus
+   one `disputes()` call per missing id.
+2. **V2 categories are in the data, not in our heads.** Every V2 dispute has a
+   `templateId`; the DRT subgraph (`kleros-v2-drt/v0.12.0`) holds `templateData` JSON
+   with a `category` string. Joining the two gives Junín 45 · Lemon 44 · Metlife 15 …
+   for courts 29+32 and Agentic commerce 22 · Oracle 11 · Services 7 … for court 34.
+   Our hand-kept §10 was off by up to 6 per category; corrected on 6 Sep from this
+   source. `manual.json` loses the consumer rules entirely; only the display names,
+   icons and the "Other" grouping remain manual.
+3. **Arbitrable names come from Scout Address Tags** via the Envio HyperIndex
+   (`indexer.hyperindex.xyz/1a2f51c/v1/graphql`, `LItem` where `key0 = eip155:<chain>:<addr>`,
+   `key1` = name). Coverage is partial (Kleros Tokens yes; PoH V2, Governor, Reality
+   no), so keep Blockscout `implementations[0].name` as the fallback, in that order.
+4. **A ready-made address → category map.** `src/lib/arbitrableCategories.ts` tags
+   ~100 V1 arbitrables (Curation, PoH, Prediction Markets, Governance, Linguo,
+   Escrow, Finance, Other) and is regenerated from a CSV by a script. MIT; copy the
+   map into `manual.json` as the seed for the §07 use-case chart instead of the
+   per-court guesswork we do now.
+5. **Their "active jurors" is replayed, not read.** `stats-active-jurors` fetches
+   every `StakeSet` event and replays them month by month (juror active = latest
+   `newTotalStake > 0`), with a 10-minute in-memory cache and
+   `Cache-Control: public, s-maxage=86400, max-age=3600`. That is why their monthly
+   series exists at all; the live tile is the subgraph counter. Reuse the endpoint,
+   do not reimplement it.
+6. **Deploy model.** Netlify builds from `master` on push; env vars carry the Graph
+   key; functions are the API. For us the equivalent is linking the site to the
+   repo so `git push` deploys, which removes the Netlify token from CI entirely
+   (only the Graph key would remain, and only if we adopt the mainnet subgraph).
+
+Net effect on the pipeline: fewer RPC calls (Gnosis: zero; Arbitrum: zero; Ethereum:
+a handful per month), zero manual categorisation for V2, and three external
+dependencies to watch (Goldsky, Graph Studio, Klerosboard functions), each with an
+obvious fallback that already works today.
+
 ## Alternatives considered
 
 - **Fully client-side live page.** Always fresh, no pipeline. Rejected: 1,000+

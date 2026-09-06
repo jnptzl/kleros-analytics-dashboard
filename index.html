@@ -605,6 +605,12 @@
                     <div class="text-[10px] mt-1 num" style="color: var(--text-dim)">PNK · 0.00027 Ξ per juror</div>
                 </div>
             </div>
+            <div class="mt-8">
+                <div class="eyebrow mb-3">What the templates say each case is about</div>
+                <div class="grid grid-cols-2 sm:grid-cols-4 border-l border-t" style="border-color: var(--rule)" id="v2-agentic-categories">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
             <div class="mt-8 grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-10">
                 <article>
                     <div class="section-num">i.</div>
@@ -794,21 +800,32 @@
             { month: "2026-09", disputes: 4, cumulative: 197 }
         ];
 
-        // V2 Consumer Disputes Category Breakdown (verified from contract reads Mar 2026)
-        // Courts 29 (Consumer, 84) + 32 (Defensores del Cliente, 29) = 113 total consumer cases
-        // Junín = 18 (Consumer Disputes court 29) + 29 (Defensores del Cliente court 32, spun up 2026 for this integrator)
-        // Lemon = 35 pre-Jul + #143/#144/#145 (court 29, "¿Debería la empresa pagar la compensación…?", Descargo Lemon evidence)
+        // V2 Consumer Disputes Category Breakdown — SOURCE: DRT subgraph disputeTemplate.category
+        // joined on coreneo dispute.templateId (Klerosboard 3.0's method), courts 29 + 32, 5 Sep 2026.
+        // Courts 29 (84) + 32 (29) = 113. Junín = 17 via court 29 + 28 via court 32; court 32 also holds 1 "Testing".
         const v2ConsumerCategories = [
-            { name: "Junín", count: 47, icon: "🏛️", desc: "Municipality (Buenos Aires province) — 18 via Court 29, 29 via Court 32 (Defensores del Cliente)" },
-            { name: "Lemon", count: 38, icon: "🍋", desc: "Fintech — e-commerce disputes" },
-            { name: "Metlife", count: 14, icon: "🛡️", desc: "Insurance company disputes" },
+            { name: "Junín", count: 45, icon: "🏛️", desc: "Municipality (Buenos Aires province) — 17 via Court 29, 28 via Court 32 (Defensores del Cliente)" },
+            { name: "Lemon", count: 44, icon: "🍋", desc: "Fintech — e-commerce and compensation disputes" },
+            { name: "Metlife", count: 15, icon: "🛡️", desc: "Insurance company disputes" },
             { name: "Mendoza", count: 2, icon: "🍇", desc: "Mendoza province (incl. Lavalle)" },
             { name: "Gov. Entities", count: 1, icon: "🏢", desc: "Government entity disputes" },
             { name: "CABA", count: 1, icon: "🏙️", desc: "Buenos Aires City" },
             { name: "El Dorado", count: 1, icon: "🌴", desc: "El Dorado municipality" },
             { name: "Maldo", count: 1, icon: "📍", desc: "Maldo consumer office" },
             { name: "Insurance", count: 1, icon: "📋", desc: "Generic insurance" },
-            { name: "Other", count: 7, icon: "📄", desc: "Uncategorized / pre-integrator consumer cases" }
+            { name: "Other", count: 2, icon: "📄", desc: "Template categories General (1) and Testing (1)" }
+        ];
+
+        // Agentic Commerce Court (34) — same DRT template.category source, 46 cases, 5 Sep 2026.
+        const v2AgenticCategories = [
+            { name: "Agentic commerce", count: 22, desc: "Mandate fidelity, tool misuse, interpretation conflicts" },
+            { name: "Oracle", count: 11, desc: "Prediction-market resolutions argued by agents" },
+            { name: "Services", count: 7, desc: "Deliverable vs. buyer specification" },
+            { name: "Image generation", count: 2, desc: "Wrong style in AI-generated work" },
+            { name: "IP", count: 1, desc: "Image similarity assessment" },
+            { name: "Agentic finance", count: 1, desc: "Conflicting price feeds" },
+            { name: "Escrow", count: 1, desc: "Escrow release" },
+            { name: "Uncategorised", count: 1, desc: "Template without a category field" }
         ];
 
         // V2 Automated Curation Category Breakdown (21 cases: 19-33, 49, 65, 67-68, 73-74, 87)
@@ -1933,6 +1950,24 @@
                         </div>
                     `;
                 }).join('');
+            }
+
+            const agenticContainer = document.getElementById('v2-agentic-categories');
+            if (agenticContainer) {
+                const total = v2AgenticCategories.reduce((sum, c) => sum + c.count, 0);
+                const max = Math.max(...v2AgenticCategories.map(c => c.count));
+                agenticContainer.innerHTML = v2AgenticCategories.map(cat => `
+                        <div class="p-4 border-r border-b" style="border-color: var(--rule)" title="${cat.desc}">
+                            <div class="flex items-baseline justify-between gap-2">
+                                <span class="text-[12px] truncate" style="color: var(--text)">${cat.name}</span>
+                                <span class="display-small text-xl num" style="color: var(--c-arb)">${cat.count}</span>
+                            </div>
+                            <div class="track mt-2">
+                                <div class="track-fill" style="width: ${(cat.count / max) * 100}%; background: var(--c-arb)"></div>
+                            </div>
+                            <div class="text-[10px] mt-1.5 num" style="color: var(--text-dim)">${((cat.count / total) * 100).toFixed(1)}%</div>
+                        </div>
+                    `).join('');
             }
 
             const curationContainer = document.getElementById('v2-curation-categories');
