@@ -1,0 +1,31 @@
+# Move this file to .github/workflows/gate.yml to enable CI. It is parked here because
+# the git token used for automation lacks the `workflow` scope GitHub requires to push
+# workflow files; a push from Jean's own account (or a token with that scope) enables it.
+name: render gate
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install Playwright
+        run: |
+          pip install -r tools/requirements.txt
+          python -m playwright install --with-deps chromium
+      - name: Run the render gate
+        run: python tools/verify.py --report gate-report.json --max-age-days 45
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: gate-report
+          path: gate-report.json

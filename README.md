@@ -84,6 +84,28 @@ all recompute from it. You only append a brand-new month bucket once a month.
 4. **Bump the date:** one line — `const LAST_REFRESH = 'DD Mon YYYY'` near `PRICES`. It fills both the hero attribution and footer colophon stamps on load. (The `// YTD through ...` comment in `yearlyData` is a code comment, optional.)
 5. **Deploy** (the two-step flow above), then verify the live `timelineChart` / `yearlyChart` / `distributionChart` / `metric-*` and the cross-panel sums — don't trust the push.
 
+## Tools (added 6 Sep 2026)
+
+```bash
+pip install -r tools/requirements.txt && python -m playwright install chromium
+
+python3 tools/verify.py                 # render gate: 60 asserted invariants across
+                                        # every chain × period × range × view; exit 2 on failure
+python3 tools/verify.py --dump-text a.txt   # visible text across the matrix — diff two dumps
+                                            # to prove a refactor changed nothing on screen
+python3 tools/fetch.py --compare        # pull every dispute on all three chains into
+                                        # data/snapshot.json (~70 s) and diff it against
+                                        # the constants in index.html
+```
+
+`verify.py` serves the repo over HTTP and drives headless Chromium (set
+`DASHBOARD_CHROME=/path/to/chrome` to use a system browser). It runs in CI on every
+push once `tools/ci-gate.yml` is moved to `.github/workflows/gate.yml` (needs a push with the `workflow` scope); a red gate means the numbers on the page
+disagree with each other. `fetch.py` is the data side of the planned weekly refresh
+(see `docs/superpowers/specs/2026-09-05-auto-refresh-design.md`): Gnosis and Arbitrum
+come from public subgraphs, Ethereum from Klerosboard's fee endpoint plus Blockscout
+logs, V2 categories from the dispute-template registry.
+
 ## Data Extraction Guide
 
 For detailed instructions on scraping Kleros data, including:

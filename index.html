@@ -440,7 +440,7 @@
             <div class="mt-6 grid grid-cols-2 md:grid-cols-6 border-l border-t" style="border-color: var(--rule)">
                 <div class="p-4 border-r border-b" style="border-color: var(--rule)">
                     <div class="eyebrow">Total cases</div>
-                    <div class="display-small text-3xl mt-1 num" style="color: var(--c-arb)">197</div>
+                    <div class="display-small text-3xl mt-1 num" style="color: var(--c-arb)" id="v2-total-cases">197</div>
                 </div>
                 <div class="p-4 border-r border-b" style="border-color: var(--rule)">
                     <div class="eyebrow">Active jurors</div>
@@ -460,7 +460,7 @@
                 </div>
                 <div class="p-4 border-r border-b" style="border-color: var(--rule)">
                     <div class="eyebrow">Active courts</div>
-                    <div class="display-small text-3xl mt-1 num">7</div>
+                    <div class="display-small text-3xl mt-1 num" id="v2-active-courts">7</div>
                 </div>
             </div>
 
@@ -1044,6 +1044,25 @@
         }
 
         // ============ HELPER FUNCTIONS ============
+        // Court names, app names and template categories come from IPFS policies and
+        // subgraphs — external strings. Escape before they touch innerHTML, and never
+        // put them inside inline event-handler source.
+        function esc(v) {
+            return String(v ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
+        }
+        function safeUrl(u) {
+            return /^https?:\/\//i.test(String(u || '')) ? esc(u) : '';
+        }
+        // Court rows carry data-chain / data-court; one delegated listener opens the panel.
+        document.addEventListener('click', (e) => {
+            const row = e.target.closest('.court-row[data-court]');
+            if (!row) return;
+            const chain = row.dataset.chain;
+            const courtId = parseInt(row.dataset.court, 10);
+            const court = (courtsData[chain] || []).find(c => c.id === courtId);
+            if (court) openCourtPanel(chain, courtId, court.name);
+        });
+
         function getActivityValue(court) {
             const map = { '30d': 'last30d', '90d': 'last90d', '1y': 'lastYear', 'all': 'allTime' };
             return court[map[currentPeriod]];
@@ -1150,11 +1169,11 @@
                 const fillColor = court.chain === 'gnosis' ? 'var(--c-gnosis)' : court.chain === 'arbitrum' ? 'var(--c-arb)' : 'var(--c-eth)';
 
                 return `
-                    <div class="court-row flex items-center gap-3 py-2.5 px-2 cursor-pointer border-b" style="border-color: var(--rule)" onclick="openCourtPanel('${court.chain}', ${court.id}, '${court.name}')">
-                        <span class="mark ${chainMark}" title="${court.chain}"></span>
+                    <div class="court-row flex items-center gap-3 py-2.5 px-2 cursor-pointer border-b" style="border-color: var(--rule)" data-chain="${esc(court.chain)}" data-court="${parseInt(court.id, 10)}">
+                        <span class="mark ${chainMark}" title="${esc(court.chain)}"></span>
                         <div class="flex-1 min-w-0">
                             <div class="flex items-center gap-2">
-                                <span class="text-[13px] truncate">${disambiguate(court)}</span>
+                                <span class="text-[13px] truncate">${esc(disambiguate(court))}</span>
                                 ${court.chain === 'arbitrum' ? '<span class="text-[9px] num" style="color: var(--c-arb)">V2</span>' : ''}
                                 ${isActive ? '<span class="w-1.5 h-1.5 active-indicator" style="background: var(--c-live)"></span>' : ''}
                             </div>
@@ -1195,14 +1214,14 @@
                 const hasRecent = app.last30d > 0;
 
                 return `
-                    <a href="${app.url}" target="_blank" class="block p-4 border-r border-b" style="border-color: var(--rule); transition: background 180ms ease;" onmouseover="this.style.background='var(--surface)'" onmouseout="this.style.background='transparent'">
+                    <a href="${safeUrl(app.url) || '#'}" target="_blank" class="block p-4 border-r border-b" style="border-color: var(--rule); transition: background 180ms ease;" onmouseover="this.style.background='var(--surface)'" onmouseout="this.style.background='transparent'">
                         <div class="flex items-start justify-between gap-3">
                             <div class="min-w-0 flex-1">
                                 <div class="flex items-center gap-2">
-                                    <span class="text-[13px] font-medium truncate">${app.name}</span>
+                                    <span class="text-[13px] font-medium truncate">${esc(app.name)}</span>
                                     ${hasRecent ? '<span class="w-1.5 h-1.5 active-indicator" style="background: var(--c-live)"></span>' : ''}
                                 </div>
-                                <div class="text-[11px] mt-1 truncate" style="color: var(--text-dim)">${app.desc}</div>
+                                <div class="text-[11px] mt-1 truncate" style="color: var(--text-dim)">${esc(app.desc)}</div>
                             </div>
                             <div class="text-right flex-shrink-0">
                                 <div class="display-small text-xl num">${activity}</div>
@@ -1211,7 +1230,7 @@
                         </div>
                         <div class="flex items-center gap-2 mt-3 text-[10px]" style="color: var(--text-muted)">
                             <span class="mark ${chainMark}"></span>
-                            <span>${chainName}</span>
+                            <span>${esc(chainName)}</span>
                         </div>
                     </a>
                 `;
@@ -1240,9 +1259,9 @@
                                 <span style="color: var(--text-muted)">${chainLabel}</span>
                             </span>
                         </div>
-                        <div class="display-small text-base mt-3">${c.court}</div>
+                        <div class="display-small text-base mt-3">${esc(c.court)}</div>
                         <div class="flex items-center justify-between mt-3 text-[10px]" style="color: var(--text-dim)">
-                            <span>${c.app} · ${c.date}</span>
+                            <span>${esc(c.app)} · ${esc(c.date)}</span>
                             <span class="uppercase tracking-wider" style="color: ${statusColor}; font-weight: 500; letter-spacing: 0.08em;">${statusWord}</span>
                         </div>
                     </a>
@@ -1251,6 +1270,8 @@
         }
 
         function openCourtPanel(chain, courtId, courtName) {
+            courtId = parseInt(courtId, 10);
+            if (!courtsData[chain] || Number.isNaN(courtId)) return;
             const panel = document.getElementById('court-panel');
             const content = document.getElementById('panel-content');
             document.getElementById('panel-court-name').textContent = courtName;
@@ -1640,7 +1661,7 @@
                 return `
                     <div class="flex items-center gap-3 pb-2 border-b" style="border-color: var(--rule)">
                         <span class="mark" style="background: ${cssColor}"></span>
-                        <span class="truncate text-[12px]">${sliceLabel(c)}</span>
+                        <span class="truncate text-[12px]">${esc(sliceLabel(c))}</span>
                         <span class="num ml-auto" style="color: var(--text-dim)">${pct}%</span>
                     </div>
                 `;
@@ -1909,11 +1930,11 @@
                 const isActive = court.last30d > 0;
 
                 return `
-                    <div class="court-row flex items-center gap-4 py-3 px-4 cursor-pointer border-b" style="border-color: var(--rule)" onclick="openCourtPanel('arbitrum', ${court.id}, '${court.name}')">
+                    <div class="court-row flex items-center gap-4 py-3 px-4 cursor-pointer border-b" style="border-color: var(--rule)" data-chain="arbitrum" data-court="${parseInt(court.id, 10)}">
                         <span class="mark mark-a"></span>
                         <div class="flex-1 min-w-0">
                             <div class="flex items-center gap-2">
-                                <span class="text-[13px] truncate">${court.name}</span>
+                                <span class="text-[13px] truncate">${esc(court.name)}</span>
                                 ${isActive ? '<span class="w-1.5 h-1.5 active-indicator" style="background: var(--c-live)"></span>' : ''}
                             </div>
                             <div class="flex items-center gap-3 mt-1.5">
@@ -1940,7 +1961,7 @@
                     return `
                         <div class="p-4 border-r border-b" style="border-color: var(--rule)">
                             <div class="flex items-baseline justify-between gap-2">
-                                <span class="text-[12px] truncate" style="color: var(--text)">${cat.name}</span>
+                                <span class="text-[12px] truncate" style="color: var(--text)">${esc(cat.name)}</span>
                                 <span class="display-small text-xl num" style="color: var(--c-arb)">${cat.count}</span>
                             </div>
                             <div class="track mt-2">
@@ -1957,9 +1978,9 @@
                 const total = v2AgenticCategories.reduce((sum, c) => sum + c.count, 0);
                 const max = Math.max(...v2AgenticCategories.map(c => c.count));
                 agenticContainer.innerHTML = v2AgenticCategories.map(cat => `
-                        <div class="p-4 border-r border-b" style="border-color: var(--rule)" title="${cat.desc}">
+                        <div class="p-4 border-r border-b" style="border-color: var(--rule)" title="${esc(cat.desc)}">
                             <div class="flex items-baseline justify-between gap-2">
-                                <span class="text-[12px] truncate" style="color: var(--text)">${cat.name}</span>
+                                <span class="text-[12px] truncate" style="color: var(--text)">${esc(cat.name)}</span>
                                 <span class="display-small text-xl num" style="color: var(--c-arb)">${cat.count}</span>
                             </div>
                             <div class="track mt-2">
@@ -1981,7 +2002,7 @@
                         <div class="p-5 border-r border-b" style="border-color: var(--rule)">
                             <div class="flex items-baseline justify-between gap-3">
                                 <div>
-                                    <div class="eyebrow">${cat.name}</div>
+                                    <div class="eyebrow">${esc(cat.name)}</div>
                                     <div class="display-small text-3xl num mt-1 accent">${cat.count}</div>
                                 </div>
                                 <div class="text-right text-[11px] num" style="color: var(--text-dim)">${pct}%</div>
@@ -1989,7 +2010,7 @@
                             <div class="track mt-3">
                                 <div class="track-fill" style="width: ${barPct}%; background: var(--accent-ink)"></div>
                             </div>
-                            <p class="text-[11px] mt-3" style="color: var(--text-muted)">${cat.desc}</p>
+                            <p class="text-[11px] mt-3" style="color: var(--text-muted)">${esc(cat.desc)}</p>
                         </div>
                     `;
                 }).join('');
