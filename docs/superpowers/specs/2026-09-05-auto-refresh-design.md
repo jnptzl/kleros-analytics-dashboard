@@ -152,6 +152,62 @@ a handful per month), zero manual categorisation for V2, and three external
 dependencies to watch (Goldsky, Graph Studio, Klerosboard functions), each with an
 obvious fallback that already works today.
 
+## Codex review (6 Sep 2026) and what it changes
+
+Codex (gpt-5 class, xhigh reasoning) read the spec, the page, the seed scripts and the
+Klerosboard source. Verdict: "do not implement as written". Accepted points, now part
+of the design:
+
+- **Full fetch, not incremental.** Under 3,000 disputes; Gnosis and Arbitrum are one
+  cheap query each. Weekly full pull → normalize → validate → derive → generate. No
+  ledger high-watermark, no reorg handling, no "rebucket the current month".
+- **Snapshot, not append-only ledger.** `data/snapshot.json` (every dispute with
+  `chain, id, court, arbitrable, ts, period, ruled, templateId, category, source,
+  observedAt`) is rebuilt each run and atomically replaced. Courts, statuses and
+  categories can change after the fact; append-only was the wrong model.
+- **Generate a data file, not a marker block.** `data/dashboard-data.js` sets
+  `window.DASHBOARD_DATA`; `index.html` loads it before the renderers. The page
+  stops being edited by scripts at all.
+- **Fail-closed means all-or-nothing.** Fetch into a temp dir, validate the complete
+  snapshot, then swap. Never deploy fresh disputes next to stale juror tiles.
+  Per-source `asOf` timestamps are stored and shown; `LAST_REFRESH` becomes the
+  snapshot time, and a source older than the snapshot is labelled.
+- **Real gates, with source checks.** The seed `verify.py` only prints; the real
+  one asserts and exits non-zero. Beyond internal consistency add: cursor
+  pagination with a terminal-count assertion on every list query (Gnosis is at
+  992 of a 1,000 page), unique `(chain, id)`, no unexplained count decrease versus
+  the previous snapshot, GraphQL `errors` and `_meta.block` freshness, counter
+  versus list agreement, category coverage, and a post-deploy live smoke test.
+- **Exact time windows.** With per-dispute timestamps, 30d/90d/1y become true
+  windows from the snapshot time. Today's "30d" is two calendar months.
+- **Escape external strings.** Court names and template categories come from
+  IPFS and subgraphs; they must not reach `innerHTML` or inline `onclick`
+  unescaped. Render with `textContent` and data attributes.
+- **Deployment out of the script.** `refresh.py` fetches, derives, validates,
+  writes. GitHub Actions commits the snapshot; Netlify deploys from the repo on
+  push, so the Netlify token disappears from CI. One workflow, `workflow_dispatch`,
+  failure notification, no local fallback cron (it would race CI).
+- **Fix the copy with the change.** Footer "No cron, no subgraph — just a human and
+  the chain", the README deploy section, and the hard-coded masthead month all
+  become false the day this ships.
+- **The estimate was optimistic.** The reusable part of the seed is the queries.
+  Budget a proper session for schemas, tests, CI and atomic writes.
+
+Rejected or qualified:
+
+- *"Aggregate V2 applications by arbitrable, not court."* Every V2 dispute shares one
+  `arbitrated` address (the DisputeResolver), so that collapses §05 into one row.
+  For V2 the application dimension is the template `category`; courts stay a
+  separate dimension. Codex is right for V1, where the arbitrable is the app.
+- *"Represent the pre-2019-03 Ethereum dispute explicitly."* Agreed in principle;
+  it becomes an explicit `unknown-month` row in the legacy baseline rather than a
+  tolerated ±1.
+
+Revised answers to the four decisions: (1) split, via `data/dashboard-data.js`;
+(2) GitHub Actions only, Netlify linked to the repo, no Netlify token; (3) freeze
+Ethereum history as a versioned baseline, do not attempt transaction-input
+recovery; (4) no live overlay.
+
 ## Alternatives considered
 
 - **Fully client-side live page.** Always fresh, no pipeline. Rejected: 1,000+

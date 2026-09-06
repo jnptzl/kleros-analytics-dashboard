@@ -23,7 +23,7 @@ The dashboard aggregates data from on-chain logs (V1) and a public subgraph (V2)
 | Gnosis (V1) | Public Gnosis RPC `eth_getLogs` on `0x9C1dA9A04925bDfDedf0f6421bC7EEa8305F9002` | None |
 | Arbitrum (V2) | Goldsky subgraph `kleros-v2-coreneo/v0.17.2/gn` | None |
 
-> **Note**: the legacy Klerosboard subgraphs (`klerosboard-mainnet`, `klerosboard-gnosis`) are deprecated and return `"deployment does not exist"`. Don't fall back to them. See [`klerosboard-data-guide.md`](./klerosboard-data-guide.md) for verified data-pull recipes.
+> **Note** (updated 6 Sep 2026): the Klerosboard **Gnosis** subgraph on Graph Studio (`api.studio.thegraph.com/query/66145/klerosboard-gnosis/version/latest`) is public and works again — `klerosCounter`, `courts` and the full `disputes` list with `subcourtID`, `startTime`, `arbitrable`. The **mainnet** twin is only on the Graph gateway (needs an API key); the Studio copy still returns `"deployment does not exist"`. See [`klerosboard-data-guide.md`](./klerosboard-data-guide.md) for the other data-pull recipes.
 
 ## Project Structure
 
